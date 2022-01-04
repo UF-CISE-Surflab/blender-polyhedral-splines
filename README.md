@@ -1,7 +1,7 @@
-[**Low-degree semi-structured splines (LDssS)**](https://github.com/UF-CISE-Surflab/blender-semi-structure-spline) is a [Blender](https://www.blender.org/) [add-on](https://docs.blender.org/manual/en/latest/editors/preferences/addons.html) that converts quad-dominant meshes into B-spline patches.
+[**Polyhedral splines**](https://github.com/UF-CISE-Surflab/blender-polyhedral-splines) is a [Blender](https://www.blender.org/) [add-on](https://docs.blender.org/manual/en/latest/editors/preferences/addons.html) that converts quad-dominant meshes into B-spline patches.
 This enables artists to edit spline surfaces in real-time via the existing polyhedral modeling capabilities of Blender.
 
-Please find detailed introduction [here](https://uf-cise-surflab.github.io/blender-semi-structured-spline/)!
+Please find detailed introduction [here](https://uf-cise-surflab.github.io/blender-polyhedral-splines/)!
 
 # Features
 1. Smooth surfaces without subdividing the mesh. (The Blender's default [subdivision](https://docs.blender.org/manual/en/latest/modeling/modifiers/generate/subdivision_surface.html) and [smooth](https://docs.blender.org/manual/en/latest/modeling/modifiers/deform/smooth.html) operator exponentially increase the number of vertices. This can cause high computational and storage overhead for downstream operations)
@@ -14,7 +14,7 @@ Please find detailed introduction [here](https://uf-cise-surflab.github.io/blend
 </p>
 
 # Installation
-1. Download [Low-degree semi-structured spline repo](https://bitbucket.org/surflab/blender-semi-structure-spline/src/cleanup/) as add-on .zip file
+1. Download [Polyhedral splines repo](https://bitbucket.org/surflab/blender-polyhedral-splines/src/cleanup/) as add-on .zip file
 2. Follow [official add-on installation guide](https://docs.blender.org/manual/en/latest/editors/preferences/addons.html).
 
 # How to find the installed add-on in Blender?
@@ -77,7 +77,7 @@ Expand "Viewport Shading" and (dis)select "Outline".
 &nbsp;
 
 ### Show / Hide faces of control polygon
-Click on "View" then "Toggle Mesh Faces" to hide/show the semi-transparent  control polyhedron ( = input polyhedron).
+Click on "View" then "Toggle Mesh Faces" to hide/show the semi-transparent control polyhedron ( = input polyhedron).
 
 <p float="left">
   <img src="img_readme/toggle.png" width="140" />
