@@ -22,7 +22,7 @@ Click on the small left angle bracket to expand the panel
 
 ![Alt text](img_readme/find_addon_panel_1.png)
 
-Then switch to the tab of interactive modeling
+Then switch to the tab of Polyhedral Splines
 
 ![Alt text](img_readme/find_addon_panel_2.png)
 
