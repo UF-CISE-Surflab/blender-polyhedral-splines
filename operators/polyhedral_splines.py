@@ -17,9 +17,9 @@ from .patch import PatchOperator
 import time
 
 
-class SemiStructureSpline(bpy.types.Operator):
+class PolyhedralSplines(bpy.types.Operator):
     bl_label = "Interactive Modeling"
-    bl_idname = "object.semi_structure_spline"
+    bl_idname = "object.polyhedral_splines"
 
     # The algorithm using face as center
     face_based_patch_constructors: list = [
@@ -152,7 +152,7 @@ def update_surface(context, obj):
         if central_face_IDs is not False and fpatch_names is not False:
             i = 0
             while i < len(central_face_IDs):
-                for pc in SemiStructureSpline.face_based_patch_constructors:
+                for pc in PolyhedralSplines.face_based_patch_constructors:
                     if i >= len(central_face_IDs):
                         break
                     if not pc.is_same_type(bm.faces[central_face_IDs[i]]):
@@ -165,7 +165,7 @@ def update_surface(context, obj):
         if central_vert_IDs is not False and vpatch_names is not False:
             i = 0
             while i < len(central_vert_IDs):
-                for pc in SemiStructureSpline.vert_based_patch_constructors:
+                for pc in PolyhedralSplines.vert_based_patch_constructors:
                     if i >= len(central_vert_IDs):
                         break
                     if not pc.is_same_type(bm.verts[central_vert_IDs[i]]):

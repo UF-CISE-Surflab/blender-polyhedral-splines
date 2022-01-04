@@ -1,6 +1,6 @@
 import bpy
 import bmesh
-from .semi_structure_spline import SemiStructureSpline
+from .polyhedral_splines import PolyhedralSplines
 from .color import Color
 
 
@@ -39,8 +39,8 @@ class Highlighter(bpy.types.Operator):
         # Highlight faces that are not supported
 
         Highlighter.mark_unsupported_structure(bm,
-                                               SemiStructureSpline.face_based_patch_constructors,
-                                               SemiStructureSpline.vert_based_patch_constructors)
+                                               PolyhedralSplines.face_based_patch_constructors,
+                                               PolyhedralSplines.vert_based_patch_constructors)
 
         show_message_box("The faces highlighted as RED represent the "
                          + "mesh configuration is not supported by the "
