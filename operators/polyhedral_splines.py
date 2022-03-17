@@ -1,6 +1,8 @@
+import numpy
 import bpy
 import bmesh
 from bpy.app.handlers import persistent
+from .helper import Helper
 from .reg_patch_constructor import RegPatchConstructor
 from .extraordinary_patch_constructor import ExtraordinaryPatchConstructor
 from .t0_patch_constructor import T0PatchConstructor
@@ -11,7 +13,7 @@ from .polar_patch_constructor import PolarPatchConstructor
 from .two_triangles_two_quads_patch_constructor import TwoTrianglesTwoQuadsPatchConstructor
 from .patch_tracker import PatchTracker
 from .patch import PatchOperator
-
+from .bivariateBBFunctions import bbFunctions
 
 # Debug
 import time
@@ -48,6 +50,7 @@ class PolyhedralSplines(bpy.types.Operator):
         Make the addon only can be found when object is active
         and it is a mesh in edit mode.
         """
+        #TODO: figure out why below is here
         """
         obj = context.active_object
         if obj == None:
@@ -76,21 +79,26 @@ class PolyhedralSplines(bpy.types.Operator):
         bm.from_mesh(control_mesh)
         bm.verts.ensure_lookup_table()
         bm.faces.ensure_lookup_table()
-
+        
         # Iterate through each vert of the mesh
+        runningSum = 0.000
         for v in bm.verts:
             # Iterate throgh different type of patch constructors
             for pc in self.vert_based_patch_constructors:
                 if pc.is_same_type(v):
+                    print(pc.name)
                     start = time.process_time()
-
                     bspline_patches = pc.get_patch(v)
                     patch_names = PatchOperator.generate_multiple_patch_obj(bspline_patches)
                     nb_verts = pc.get_neighbor_verts(v)
                     PatchTracker.register_multiple_patches(v, nb_verts, patch_names)
-
+                    bezier_patches = pc.get_bezier_patch(v)
+                    for bp in bezier_patches.bezier_coefs:
+                        xCoefs, yCoefs, zCoefs = Helper.list_to_npmatrices(bp, bezier_patches.order_u, bezier_patches.order_v)
+                        firstMoment = bbFunctions.firstMoment(xCoefs,yCoefs,zCoefs)
+                        runningSum += firstMoment
                     print("Generate patch obj time usage (sec): ", time.process_time() - start)
-
+        print(f"TOTAL SUM = {runningSum}")
         # Iterate through each face of the mesh
         for f in bm.faces:
             for pc in self.face_based_patch_constructors:
@@ -99,7 +107,8 @@ class PolyhedralSplines(bpy.types.Operator):
                     patch_names = PatchOperator.generate_multiple_patch_obj(bspline_patches)
                     nb_verts = pc.get_neighbor_verts(f)
                     PatchTracker.register_multiple_patches(f, nb_verts, patch_names)
-
+        #TODO: keep a stack of patch_names for undo, so PatchTracker works correctly
+        
         # Finish up, write the bmesh back to the mesh
         if control_mesh.is_editmode:
             bmesh.update_edit_mesh(control_mesh)
