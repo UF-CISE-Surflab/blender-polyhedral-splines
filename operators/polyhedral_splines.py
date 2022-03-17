@@ -82,6 +82,7 @@ class PolyhedralSplines(bpy.types.Operator):
         
         # Iterate through each vert of the mesh
         runningSum = 0.000
+        centerOfMass = [0,0,0]
         for v in bm.verts:
             # Iterate throgh different type of patch constructors
             for pc in self.vert_based_patch_constructors:
@@ -95,10 +96,15 @@ class PolyhedralSplines(bpy.types.Operator):
                     bezier_patches = pc.get_bezier_patch(v)
                     for bp in bezier_patches.bezier_coefs:
                         xCoefs, yCoefs, zCoefs = Helper.list_to_npmatrices(bp, bezier_patches.order_u, bezier_patches.order_v)
-                        firstMoment = bbFunctions.firstMoment(xCoefs,yCoefs,zCoefs)
-                        runningSum += firstMoment
+                        zerothMoment = bbFunctions.zerothMoment(xCoefs,yCoefs,zCoefs)
+                        runningSum += zerothMoment
+                        m1, m2, m3 = bbFunctions.firstMoment(xCoefs,yCoefs,zCoefs)
+                        centerOfMass[0] += m1
+                        centerOfMass[1] += m2
+                        centerOfMass[2] += m3
                     print("Generate patch obj time usage (sec): ", time.process_time() - start)
-        print(f"TOTAL SUM = {runningSum}")
+        print(f"TOTAL SUM = {runningSum}\nCENTER OF MASS = {centerOfMass}")
+    
         # Iterate through each face of the mesh
         for f in bm.faces:
             for pc in self.face_based_patch_constructors:
