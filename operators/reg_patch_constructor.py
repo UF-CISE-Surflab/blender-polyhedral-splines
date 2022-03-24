@@ -47,7 +47,6 @@ class RegPatchConstructor(PatchConstructor):
         get_vert_order = [1, 0, 3, 6, 7, 8, 5, 2]
         nb_verts = Halfedge.get_verts_repeat_n_times(he, commands, 4, get_vert_order, 9)
         nb_verts[4] = vert
-        print(nb_verts)
         return nb_verts
 
     @classmethod
