@@ -313,91 +313,87 @@ def bbDefIntegral(poly):
     return np.sum(poly) / (len(poly) * len(poly[0]))
 
 class bbFunctions:
-
-    @staticmethod
-    def zerothMoment(xCoefs, yCoefs, zCoefs):
-        dxdu = bbUDir(xCoefs)
-        dydv = bbVDir(yCoefs)
-        xuyv = bbMult(dxdu, dydv)
-        dxdv = bbVDir(xCoefs)
-        dydu = bbUDir(yCoefs)
-        xvyu = bbMult(dxdv, dydu)
-        n3 = xuyv - xvyu
-        zn = bbMult(n3, zCoefs)
-        return(bbDefIntegral(zn))
-    @staticmethod
-    def firstMoment(xCoefs, yCoefs, zCoefs):
-        dxdu = bbUDir(xCoefs)
-        dydv = bbVDir(yCoefs)
-        xuyv = bbMult(dxdu, dydv)
-        dxdv = bbVDir(xCoefs)
-        dydu = bbUDir(yCoefs)
-        xvyu = bbMult(dxdv, dydu)
-        n3 = xuyv - xvyu
-        zn = bbMult(n3, zCoefs)
-        xz = bbMult(xCoefs, zCoefs)
-        m1 = bbDefIntegral(bbMult(xz, n3))
-        m2 = bbDefIntegral(bbMult(zn, yCoefs))
-        m3 = bbDefIntegral(bbMult(zn, zCoefs)) / 2
-        
-        return m1,m2,m3
-    @staticmethod
-    def secondMoment(xCoefs, yCoefs, zCoefs):
-        dxdu = bbUDir(xCoefs)
-        dydv = bbVDir(yCoefs)
-        xuyv = bbMult(dxdu, dydv)
-        dxdv = bbVDir(xCoefs)
-        dydu = bbUDir(yCoefs)
-        xvyu = bbMult(dxdv, dydu)
-        n3 = xuyv - xvyu
-        zn  = bbMult(n3, zCoefs)
-        m1  = bbMult(zn, xCoefs)
-        m2  = bbMult(zn, yCoefs)
-        m3  = bbMult(zn, zCoefs)
-        m11 = bbDefIntegral (bbMult(m1, xCoefs))
-        m12 = bbDefIntegral (bbMult(m2, xCoefs))
-        m13 = bbDefIntegral (bbMult(m3, xCoefs)) / 2
-        m21 = bbDefIntegral (bbMult(m1, yCoefs))
-        m22 = bbDefIntegral (bbMult(m2, yCoefs))
-        m23 = bbDefIntegral (bbMult(m3, yCoefs)) / 2
-        m31 = bbDefIntegral (bbMult(m1, zCoefs)) / 2
-        m32 = bbDefIntegral (bbMult(m2, zCoefs)) / 2
-        m33 = bbDefIntegral (bbMult(m3, zCoefs)) / 3
-        return m11,m12,m13,m21,m22,m23,m31,m32,m33
-
+	@staticmethod
+	def zerothMoment(xCoefs, yCoefs, zCoefs):
+		dxdu = bbUDir(xCoefs)
+		dydv = bbVDir(yCoefs)
+		xuyv = bbMult(dxdu, dydv)
+		dxdv = bbVDir(xCoefs)
+		dydu = bbUDir(yCoefs)
+		xvyu = bbMult(dxdv, dydu)
+		n3 = xuyv - xvyu
+		zn = bbMult(n3, zCoefs)
+		return(bbDefIntegral(zn))
+	@staticmethod
+	def firstMoment(xCoefs, yCoefs, zCoefs):
+		dxdu = bbUDir(xCoefs)
+		dydv = bbVDir(yCoefs)
+		xuyv = bbMult(dxdu, dydv)
+		dxdv = bbVDir(xCoefs)
+		dydu = bbUDir(yCoefs)
+		xvyu = bbMult(dxdv, dydu)
+		n3 = xuyv - xvyu
+		zn = bbMult(n3, zCoefs)
+		xz = bbMult(xCoefs, zCoefs)
+		m1 = bbDefIntegral(bbMult(xz, n3))
+		m2 = bbDefIntegral(bbMult(zn, yCoefs))
+		m3 = bbDefIntegral(bbMult(zn, zCoefs)) / 2
+		return m1,m2,m3
+	@staticmethod
+	def secondMoment(xCoefs, yCoefs, zCoefs):
+		dxdu = bbUDir(xCoefs)
+		dydv = bbVDir(yCoefs)
+		xuyv = bbMult(dxdu, dydv)
+		dxdv = bbVDir(xCoefs)
+		dydu = bbUDir(yCoefs)
+		xvyu = bbMult(dxdv, dydu)
+		n3 = xuyv - xvyu
+		zn  = bbMult(n3, zCoefs)
+		m1  = bbMult(zn, xCoefs)
+		m2  = bbMult(zn, yCoefs)
+		m3  = bbMult(zn, zCoefs)
+		m11 = bbDefIntegral (bbMult(m1, xCoefs))
+		m12 = bbDefIntegral (bbMult(m2, xCoefs))
+		m13 = bbDefIntegral (bbMult(m3, xCoefs)) / 2
+		m21 = bbDefIntegral (bbMult(m1, yCoefs))
+		m22 = bbDefIntegral (bbMult(m2, yCoefs))
+		m23 = bbDefIntegral (bbMult(m3, yCoefs)) / 2
+		m31 = bbDefIntegral (bbMult(m1, zCoefs)) / 2
+		m32 = bbDefIntegral (bbMult(m2, zCoefs)) / 2
+		m33 = bbDefIntegral (bbMult(m3, zCoefs)) / 3
+		return m11,m12,m13,m21,m22,m23,m31,m32,m33
+	
 	@staticmethod
 	def allMoments(xCoefs, yCoefs,zCoefs):
-
-		#do everything at once because its more efficient
-		#maybe look at SIMD stuff to do
+		#do everything at once because its more efficient#maybe look at SIMD stuff to do
 		dxdu = bbUDir(xCoefs)
-        dydv = bbVDir(yCoefs)
-        xuyv = bbMult(dxdu, dydv)
-        dxdv = bbVDir(xCoefs)
-        dydu = bbUDir(yCoefs)
-        xvyu = bbMult(dxdv, dydu)
-        n3 = xuyv - xvyu
+		dydv = bbVDir(yCoefs)
+		xuyv = bbMult(dxdu, dydv)
+		dxdv = bbVDir(xCoefs)
+		dydu = bbUDir(yCoefs)
+		xvyu = bbMult(dxdv, dydu)
+		n3 = xuyv - xvyu
 		zn  = bbMult(n3, zCoefs)
 		volume = bbDefIntegral(zn)
-        m1  = bbMult(zn, xCoefs)
-        m2  = bbMult(zn, yCoefs)
-        m3  = bbMult(zn, zCoefs)
+		m1  = bbMult(zn, xCoefs)
+		m2  = bbMult(zn, yCoefs)
+		m3  = bbMult(zn, zCoefs)
 		tM1 = bbDefIntegral(m1)
 		tM2 = bbDefIntegral(m2)
 		tM3 = bbDefIntegral(m3) / 2
-        m11 = bbDefIntegral (bbMult(m1, xCoefs))
-        m12 = bbDefIntegral (bbMult(m2, xCoefs))
-        m13 = bbDefIntegral (bbMult(m3, xCoefs)) / 2
-        m21 = bbDefIntegral (bbMult(m1, yCoefs))
-        m22 = bbDefIntegral (bbMult(m2, yCoefs))
-        m23 = bbDefIntegral (bbMult(m3, yCoefs)) / 2
-        m31 = bbDefIntegral (bbMult(m1, zCoefs)) / 2
-        m32 = bbDefIntegral (bbMult(m2, zCoefs)) / 2
-        m33 = bbDefIntegral (bbMult(m3, zCoefs)) / 3
-		com = numpy.array([
+		m11 = bbDefIntegral (bbMult(m1, xCoefs))
+		m12 = bbDefIntegral (bbMult(m2, xCoefs))
+		m13 = bbDefIntegral (bbMult(m3, xCoefs)) / 2
+		m21 = bbDefIntegral (bbMult(m1, yCoefs))
+		m22 = bbDefIntegral (bbMult(m2, yCoefs))
+		m23 = bbDefIntegral (bbMult(m3, yCoefs)) / 2
+		m31 = bbDefIntegral (bbMult(m1, zCoefs)) / 2
+		m32 = bbDefIntegral (bbMult(m2, zCoefs)) / 2
+		m33 = bbDefIntegral (bbMult(m3, zCoefs)) / 3
+		com = np.array([
 			tM1, tM2, tM3
 		])
-		moi = numpy.array([
+		moi = np.array([
 			[m11,m12,m13],
 			[m21,m22,m23],
 			[m31,m32,m33]

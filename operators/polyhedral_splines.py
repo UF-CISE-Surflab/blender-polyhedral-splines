@@ -97,24 +97,12 @@ class PolyhedralSplines(bpy.types.Operator):
                     bezier_patches = pc.get_bezier_patch(v)
                     for bp in bezier_patches.bezier_coefs:
                         xCoefs, yCoefs, zCoefs = Helper.list_to_npmatrices(bp, bezier_patches.order_u, bezier_patches.order_v)
-                        zerothMoment = bbFunctions.zerothMoment(xCoefs,yCoefs,zCoefs)
-                        runningSum += zerothMoment
-                        m1, m2, m3 = bbFunctions.firstMoment(xCoefs,yCoefs,zCoefs)
-                        centerOfMass[0] += m1
-                        centerOfMass[1] += m2
-                        centerOfMass[2] += m3
-                        m11,m12,m13,m21,m22,m23,m31,m32,m33 = bbFunctions.secondMoment(xCoefs,yCoefs,zCoefs)
-                        momentOfInertia[0][0] += m11
-                        momentOfInertia[0][1] += m12
-                        momentOfInertia[0][2] += m13
-                        momentOfInertia[1][0] += m21
-                        momentOfInertia[1][1] += m22
-                        momentOfInertia[1][2] += m23
-                        momentOfInertia[2][0] += m31
-                        momentOfInertia[2][1] += m32
-                        momentOfInertia[2][2] += m33
-                    
+                        pieceVolume, pieceCOM, pieceMOI = bbFunctions.allMoments(xCoefs, yCoefs, zCoefs)
+                        runningSum = runningSum + pieceVolume
+                        centerOfMass = centerOfMass + pieceCOM
+                        momentOfInertia = momentOfInertia + pieceMOI
                     print("Generate patch obj time usage (sec): ", time.process_time() - start)
+        centerOfMass /= runningSum
         print(f"TOTAL SUM = {runningSum}\nCENTER OF MASS = {centerOfMass}\nMOMENT OF INTERTIA = {momentOfInertia}")
     
         # Iterate through each face of the mesh
