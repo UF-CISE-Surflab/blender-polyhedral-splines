@@ -102,7 +102,8 @@ class PolyhedralSplines(bpy.types.Operator):
                         centerOfMass = centerOfMass + pieceCOM
                         momentOfInertia = momentOfInertia + pieceMOI
                     print("Generate patch obj time usage (sec): ", time.process_time() - start)
-        centerOfMass /= runningSum
+        centerOfMass = centerOfMass / runningSum
+        momentOfInertia = momentOfInertia / runningSum
         print(f"TOTAL SUM = {runningSum}\nCENTER OF MASS = {centerOfMass}\nMOMENT OF INTERTIA = {momentOfInertia}")
     
         # Iterate through each face of the mesh

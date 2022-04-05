@@ -66,8 +66,6 @@ class ExtraordinaryPatchConstructor(PatchConstructor):
         valence = len(vert.link_edges)
         nb_verts = cls.get_neighbor_verts(vert)
         bezier_coefs = Helper.apply_mask_on_neighbor_verts(cls.masks["eopSct{}".format(valence)], nb_verts)
-        #print(len(bezier_coefs))
-        #print(nb_verts)
         num_of_coef_per_patch = (deg_u + 1) * (deg_v + 1)
         num_of_patches = len(bezier_coefs) / num_of_coef_per_patch
         return BezierPatch(
