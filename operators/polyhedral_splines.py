@@ -14,6 +14,9 @@ from .two_triangles_two_quads_patch_constructor import TwoTrianglesTwoQuadsPatch
 from .patch_tracker import PatchTracker
 from .patch import PatchOperator
 from .bivariateBBFunctions import bbFunctions
+from .moments import Moments
+
+import math
 
 # Debug
 import time
@@ -50,7 +53,6 @@ class PolyhedralSplines(bpy.types.Operator):
         Make the addon only can be found when object is active
         and it is a mesh in edit mode.
         """
-        #TODO: figure out why below is here
         """
         obj = context.active_object
         if obj == None:
@@ -66,6 +68,7 @@ class PolyhedralSplines(bpy.types.Operator):
 
     def execute(self, context):
         self.__init_patch_obj__(context)
+        bpy.ops.ui.reloadtranslation()
         return {'FINISHED'}
 
     def __init_patch_obj__(self, context):
@@ -79,7 +82,7 @@ class PolyhedralSplines(bpy.types.Operator):
         bm.from_mesh(control_mesh)
         bm.verts.ensure_lookup_table()
         bm.faces.ensure_lookup_table()
-        
+
         # Iterate through each vert of the mesh
         runningSum = 0.000
         centerOfMass = numpy.zeros(3)
@@ -88,7 +91,6 @@ class PolyhedralSplines(bpy.types.Operator):
             # Iterate throgh different type of patch constructors
             for pc in self.vert_based_patch_constructors:
                 if pc.is_same_type(v):
-                    print(pc.name)
                     start = time.process_time()
                     bspline_patches = pc.get_patch(v)
                     patch_names = PatchOperator.generate_multiple_patch_obj(bspline_patches)
@@ -102,10 +104,26 @@ class PolyhedralSplines(bpy.types.Operator):
                         centerOfMass = centerOfMass + pieceCOM
                         momentOfInertia = momentOfInertia + pieceMOI
                     print("Generate patch obj time usage (sec): ", time.process_time() - start)
+
         centerOfMass = centerOfMass / runningSum
         momentOfInertia = momentOfInertia / runningSum
         print(f"TOTAL SUM = {runningSum}\nCENTER OF MASS = {centerOfMass}\nMOMENT OF INTERTIA = {momentOfInertia}")
-    
+
+        Moments.CoM[0] = round(centerOfMass[0], 2)
+        Moments.CoM[1] = round(centerOfMass[1], 2)
+        Moments.CoM[2] = round(centerOfMass[2], 2)
+        Moments.Volume = abs(round(runningSum, 2))
+        Moments.InertiaTens[0][0] = round(momentOfInertia[0][0], 2)
+        Moments.InertiaTens[0][1] = round(momentOfInertia[0][1], 2)
+        Moments.InertiaTens[0][2] = round(momentOfInertia[0][2], 2)
+        Moments.InertiaTens[1][0] = round(momentOfInertia[1][0], 2)
+        Moments.InertiaTens[1][1] = round(momentOfInertia[1][1], 2)
+        Moments.InertiaTens[1][2] = round(momentOfInertia[1][2], 2)
+        Moments.InertiaTens[2][0] = round(momentOfInertia[2][0], 2)
+        Moments.InertiaTens[2][1] = round(momentOfInertia[2][1], 2)
+        Moments.InertiaTens[2][2] = round(momentOfInertia[2][2], 2)
+        Moments.execute(self = self, context= context)
+
         # Iterate through each face of the mesh
         for f in bm.faces:
             for pc in self.face_based_patch_constructors:
@@ -114,8 +132,7 @@ class PolyhedralSplines(bpy.types.Operator):
                     patch_names = PatchOperator.generate_multiple_patch_obj(bspline_patches)
                     nb_verts = pc.get_neighbor_verts(f)
                     PatchTracker.register_multiple_patches(f, nb_verts, patch_names)
-        #TODO: keep a stack of patch_names for undo, so PatchTracker works correctly
-        
+
         # Finish up, write the bmesh back to the mesh
         if control_mesh.is_editmode:
             bmesh.update_edit_mesh(control_mesh)
