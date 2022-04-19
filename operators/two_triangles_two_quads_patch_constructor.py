@@ -1,7 +1,7 @@
 from .patch_constructor import PatchConstructor
 from .halfedge import Halfedge
 from .bezier_bspline_converter import BezierBsplineConverter
-from .patch import BsplinePatch
+from .patch import BezierPatch, BsplinePatch
 from .helper import Helper
 from .polar_patch_constructor import PolarPatchConstructor
 
@@ -81,6 +81,20 @@ class TwoTrianglesTwoQuadsPatchConstructor(PatchConstructor):
         nb_verts = Halfedge.get_verts_repeat_n_times(halfedge, commands, 4, get_vert_order, 9)
 
         return nb_verts
+
+    @classmethod
+    def get_bezier_patch(cls, vert) -> list:
+        nb_verts = cls.get_neighbor_verts(vert)
+        bezier_coefs = Helper.apply_mask_on_neighbor_verts(cls.mask, nb_verts)
+        num_of_coef_per_patch = (cls.deg_u + 1) * (cls.deg_v + 1)
+        num_of_patches = len(bezier_coefs) / num_of_coef_per_patch
+        return BezierPatch(
+            order_u=3,
+            order_v=3,
+            struct_name=cls.name,
+            bezier_coefs=Helper.split_list(bezier_coefs, int(num_of_patches))
+        )
+
 
     @classmethod
     def get_patch(cls, vert) -> list:

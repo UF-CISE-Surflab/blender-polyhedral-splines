@@ -5,6 +5,7 @@ import numpy as np
 """
     SCALER MATRICES ARE DEFINED PRIOR TO COMPUTATION FOR BETTER PERFORMANCE
 """
+#TODO: Change the lookup table from string lookup to pair lookup
 matrixLUT = {
 	"33": np.array([
 		[1,2,1,],
@@ -280,6 +281,18 @@ matrixLUT = {
 """
     ALGORITHMS FOR MANIPULATING BERNSTEIN BEZIER POLYNOMIALS
 """
+#Helper function for combinations, in the form of nChoosek
+def comb(n,k):
+	return math.factorial(n) / (math.factorial(n-k) * math.factorial(k))
+
+#If a scaler isn't found in the LUT, this function will be called to add a scaler to the LUT
+def createScaler(u, v):
+	scalerMatrix = np.zeros((v+1,u+1))
+	for i in range(0,v+1):
+		for j in range(0,u+1):
+			scalerMatrix[i][j] = comb(u, j) * comb(v,i)
+	return scalerMatrix
+
 #Take the derivative of a bernstein polynomial in the u direction
 def bbUDir(poly): 
     #matrix math
@@ -287,27 +300,41 @@ def bbUDir(poly):
     rightCols = poly[:, 1:]
     colDirs = rightCols - leftCols
     return colDirs * (len(poly[0]) - 1)
-    #Take the derivative of a bernstein polynomial in the v direction
+
+#Take the derivative of a bernstein polynomial in the v direction
 def bbVDir(poly):
     upRows = poly[:len(poly)-1,:]
     botRows = poly[1:,:]
     rowDirs = botRows - upRows
     return rowDirs * (len(poly)-1)
+
 #multiply two bernstein polynomials
-#TODO: maybe have a dictionary of scalerMatrices and have the function determine which scalar matrix to use based on the dimensions of the two bernstein polynomials
 def bbMult(poly1, poly2):
-    scalerKey1 = str(len(poly1)) + str(len(poly1[0]))
-    scalerKey2 = str(len(poly2)) + str(len(poly2[0]))
-    descalerKey = str(len(poly1)+len(poly2)-1) * 2
-    scaledPoly1 = poly1 * matrixLUT[scalerKey1]
-    scaledPoly2 = poly2 * matrixLUT[scalerKey2]
-    newScaledPoly = np.zeros((len(scaledPoly1)+len(scaledPoly2)-1, len(scaledPoly1[0]) + len(scaledPoly2[0]) - 1))
-    for vi in range(0, len(poly1)):
-        for ui in range(0, len(poly1[0])):
-            for vj in range(0, len(poly2)):
-                for uj in range(0, len(poly2[0])):
-                    newScaledPoly[vi+vj][ui+uj] = newScaledPoly[vi+vj][ui+uj] + scaledPoly1[vi][ui] * scaledPoly2[vj][uj]
-    return newScaledPoly / matrixLUT[descalerKey]
+	scalerKey1 = str(len(poly1)) + str(len(poly1[0]))
+	scalerKey2 = str(len(poly2)) + str(len(poly2[0]))
+	#if our matrices are not in the lookup table, make them and add them to the table
+	if scalerKey1 not in matrixLUT:
+		matrixLUT[scalerKey1] = createScaler(len(poly1[0])-1, len(poly1)-1)
+	if scalerKey2 not in matrixLUT:
+		matrixLUT[scalerKey2] = createScaler(len(poly2[0])-1, len(poly2)-1)
+	#lookup our scaler matrices and multiply them elementwise to our coeficient matrices
+	scaledPoly1 = poly1 * matrixLUT[scalerKey1]	
+	scaledPoly2 = poly2 * matrixLUT[scalerKey2]
+	#create an empty matrix of degree u = un+um, v = vn+vm
+	#where n and m are the degree of the two polynomials
+	newScaledPoly = np.zeros((len(scaledPoly1)+len(scaledPoly2)-1, len(scaledPoly1[0]) + len(scaledPoly2[0]) - 1))
+	descalerKey = str(len(newScaledPoly)) + str(len(newScaledPoly[0])) 
+	#multiply the polynomials
+	for vi in range(0, len(poly1)):
+		for ui in range(0, len(poly1[0])):
+			for vj in range(0, len(poly2)):
+				for uj in range(0, len(poly2[0])):
+					newScaledPoly[vi+vj][ui+uj] = newScaledPoly[vi+vj][ui+uj] + scaledPoly1[vi][ui] * scaledPoly2[vj][uj]
+	
+	if (descalerKey not in matrixLUT):
+		matrixLUT[descalerKey] = createScaler(len(newScaledPoly[0]) - 1,len(newScaledPoly) - 1)
+	#descale our matrix to get the new coefficient matrix and return it
+	return newScaledPoly / matrixLUT[descalerKey]
 
 def bbDefIntegral(poly):
     return np.sum(poly) / (len(poly) * len(poly[0]))
@@ -340,7 +367,10 @@ class bbFunctions:
 		m3 = bbDefIntegral(bbMult(zn, zCoefs)) / 2
 		return m1,m2,m3
 	@staticmethod
-	def secondMoment(xCoefs, yCoefs, zCoefs):
+	def secondMoment(xCoefs, yCoefs, zCoefs, offset = np.array([0,0,0])):
+		xCoefs = xCoefs - offset[0]
+		yCoefs = yCoefs - offset[1]
+		zCoefs = zCoefs - offset[2]
 		dxdu = bbUDir(xCoefs)
 		dydv = bbVDir(yCoefs)
 		xuyv = bbMult(dxdu, dydv)
@@ -355,17 +385,20 @@ class bbFunctions:
 		m11 = bbDefIntegral (bbMult(m1, xCoefs))
 		m12 = bbDefIntegral (bbMult(m2, xCoefs))
 		m13 = bbDefIntegral (bbMult(m3, xCoefs)) / 2
-		m21 = bbDefIntegral (bbMult(m1, yCoefs))
 		m22 = bbDefIntegral (bbMult(m2, yCoefs))
 		m23 = bbDefIntegral (bbMult(m3, yCoefs)) / 2
-		m31 = bbDefIntegral (bbMult(m1, zCoefs)) / 2
-		m32 = bbDefIntegral (bbMult(m2, zCoefs)) / 2
 		m33 = bbDefIntegral (bbMult(m3, zCoefs)) / 3
-		return m11,m12,m13,m21,m22,m23,m31,m32,m33
+		moi = np.array([
+			[m11,m12,m13],
+			[m12,m22,m23],
+			[m13,m23,m33]
+		])
+		return moi
 	
 	@staticmethod
 	def allMoments(xCoefs, yCoefs,zCoefs):
-		#do everything at once because its more efficient#maybe look at SIMD stuff to do
+		#do everything at once because its more efficient
+		#
 		dxdu = bbUDir(xCoefs)
 		dydv = bbVDir(yCoefs)
 		xuyv = bbMult(dxdu, dydv)
@@ -374,28 +407,32 @@ class bbFunctions:
 		xvyu = bbMult(dxdv, dydu)
 		n3 = xuyv - xvyu
 		zn  = bbMult(n3, zCoefs)
+		#Volume calculations
 		volume = bbDefIntegral(zn)
+		#Center of mass calculations
 		m1  = bbMult(zn, xCoefs)
 		m2  = bbMult(zn, yCoefs)
 		m3  = bbMult(zn, zCoefs)
 		tM1 = bbDefIntegral(m1)
 		tM2 = bbDefIntegral(m2)
 		tM3 = bbDefIntegral(m3) / 2
+		#Moment of inertia calculations, needs to be done at the origin apparently
+		"""
 		m11 = bbDefIntegral (bbMult(m1, xCoefs))
 		m12 = bbDefIntegral (bbMult(m2, xCoefs))
-		m13 = bbDefIntegral (bbMult(m3, xCoefs)) / 2
-		m21 = bbDefIntegral (bbMult(m1, yCoefs))
+		m13 = bbDefIntegral (bbMult(m3, xCoefs)) / 2 
 		m22 = bbDefIntegral (bbMult(m2, yCoefs))
 		m23 = bbDefIntegral (bbMult(m3, yCoefs)) / 2
-		m31 = bbDefIntegral (bbMult(m1, zCoefs)) / 2
 		m32 = bbDefIntegral (bbMult(m2, zCoefs)) / 2
-		m33 = bbDefIntegral (bbMult(m3, zCoefs)) / 3
+		m33 = bbDefIntegral (bbMult(m3, zCoefs)) / 3"""
 		com = np.array([
 			tM1, tM2, tM3
 		])
-		moi = np.array([
+		"""moi = np.array([
 			[m11,m12,m13],
-			[m21,m22,m23],
-			[m31,m32,m33]
-		])
-		return volume, com, moi
+			[m12,m22,m23],
+			[m13,m23,m33]
+		])"""
+		#Return numpy matrices so the numpy library can handle the elementwise addition of all moments calculated 
+		# (should be faster than doing it in python)
+		return volume, com

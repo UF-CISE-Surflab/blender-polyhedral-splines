@@ -1,0 +1,109 @@
+{
+    "description":"This File Contains Human Made Test Data for Unit Tests For the bivariateBBFunctions.py file",
+    "testCases" : [
+        {
+            "testName" : "Quadratic Unit Cube at Origin",
+            "testDescription":
+            "Test for a unit cube with its center of mass at the origin. There are only two surfaces because for a cube with no rotation, only the top and the bottom surfaces matter, the normal of the sides will always be a coefficient matrix of 0",
+            "testVol": 1,
+            "testCOM": [0,0,0],
+            "testEigVal": [1,1,1],
+            "testSurfaces": 
+            [
+               {
+                   "xCoefs":
+                   [
+                        [-0.5,0,0.5],
+                        [-0.5,0,0.5],
+                        [-0.5,0,0.5]
+                   ],
+                   "yCoefs":
+                   [
+                        [-0.5,-0.5,-0.5],
+                        [0,0,0],
+                        [0.5,0.5,0.5]
+                   ],
+                   "zCoefs":
+                   [
+                        [0.5,0.5,0.5],
+                        [0.5,0.5,0.5],
+                        [0.5,0.5,0.5]
+                   ]
+               },
+               {
+                "xCoefs":
+                [
+                     [0.5,0,-0.5],
+                     [0.5,0,-0.5],
+                     [0.5,0,-0.5]
+                ],
+                "yCoefs":
+                [
+                     [-0.5,-0.5,-0.5],
+                     [0,0,0],
+                     [0.5,0.5,0.5]
+                ],
+                "zCoefs":
+                [
+                     [-0.5,-0.5,-0.5],
+                     [-0.5,-0.5,-0.5],
+                     [-0.5,-0.5,-0.5]
+                ]
+            }
+
+            ]
+        },
+        {
+            "testName" : "Quadratic Offset Unit Cube",
+            "testDescription":
+            "Test for a unit cube with its center of mass at the origin. There are only two surfaces because for a cube with no rotation, only the top and the bottom surfaces matter, the normal of the sides will always be a coefficient matrix of 0",
+            "testVol": 1,
+            "testCOM": [5,11,8],
+            "testEigVal": [1,1,1],
+            "testSurfaces": 
+            [
+               {
+                   "xCoefs":
+                   [
+                        [4.5,5,5.5],
+                        [4.5,5,5.5],
+                        [4.5,5,5.5]
+                   ],
+                   "yCoefs":
+                   [
+                        [10.5,10.5,10.5],
+                        [11,11,11],
+                        [11.5,11.5,11.5]
+                   ],
+                   "zCoefs":
+                   [
+                        [8.5,8.5,8.5],
+                        [8.5,8.5,8.5],
+                        [8.5,8.5,8.5]
+                   ]
+               },
+               {
+                "xCoefs":
+                [
+                     [5.5,5,4.5],
+                     [5.5,5,4.5],
+                     [5.5,5,4.5]
+                ],
+                "yCoefs":
+                [
+                    [10.5,10.5,10.5],
+                    [11,11,11],
+                    [11.5,11.5,11.5]
+                ],
+                "zCoefs":
+                [
+                    [7.5,7.5,7.5],
+                    [7.5,7.5,7.5],
+                    [7.5,7.5,7.5]
+                ]
+            }
+
+            ]
+        }
+    ]
+}

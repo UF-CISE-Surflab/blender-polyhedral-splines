@@ -1,7 +1,7 @@
 from .patch_constructor import PatchConstructor
 from .halfedge import Halfedge
 from .bezier_bspline_converter import BezierBsplineConverter
-from .patch import BsplinePatch
+from .patch import BezierPatch, BsplinePatch
 from .helper import Helper
 from .csv_reader import Reader
 
@@ -75,6 +75,23 @@ class T1PatchConstructor(PatchConstructor):
         ]
         get_vert_order = [10, 11, 16, 17, 12, 7, 6, 3, 2, 1, 5, 0, 4, 8, 9, 13, 14, 15]
         return Halfedge.get_verts_repeat_n_times(halfedge, commands, 1, get_vert_order, 18)
+
+    @classmethod
+    def get_bezier_patch(cls, face) -> list:
+        deg_u = 3
+        deg_v = 3
+        order_u = deg_u + 1
+        order_v = deg_v + 1
+        nb_verts = cls.get_neighbor_verts(face)
+        bezier_coefs = Helper.apply_mask_on_neighbor_verts(cls.masks[cls.name], nb_verts)
+        num_of_coef_per_patch = (deg_u + 1) * (deg_v + 1)
+        num_of_patches = len(bezier_coefs) / num_of_coef_per_patch
+        return BezierPatch(
+            order_u=order_u,
+            order_v=order_v,
+            struct_name=cls.name,
+            bezier_coefs=Helper.split_list(bezier_coefs, int(num_of_patches))
+        )
 
     @classmethod
     def get_patch(cls, face) -> list:

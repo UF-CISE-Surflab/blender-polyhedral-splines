@@ -56,10 +56,10 @@ class Moments(bpy.types.Operator):
         
     def CenterOfMass(self, context, CoM):
 
-        verts = [(0, 0, 0), ]
+        verts = [(0, 0, 0)]
         edges = []
         faces = []
-        bpy.ops.mesh.primitive_uv_sphere_add(radius=0.1, enter_editmode=False, align ='WORLD', location =CoM, scale = (1, 1, 1))
+        bpy.ops.mesh.primitive_uv_sphere_add(radius=0.1, enter_editmode=False, align ='WORLD', location =CoM)
 
 
         mesh = bpy.data.meshes.new("Point")
