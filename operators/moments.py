@@ -1,3 +1,5 @@
+from .helper import Helper
+from .bivariateBBFunctions import bbFunctions
 from random import randint
 from unittest.loader import VALID_MODULE_NAME
 import bpy
@@ -12,7 +14,8 @@ import mathutils
 
 class Moments(bpy.types.Operator):
 
-    Volume = ''                     # display volume in UI
+    
+    Volume = 0                       # display volume in UI
     CoM = [[], [], []]                        # put point at center of mass
     InertiaTens = [[[],[],[]],[[],[],[]],[[],[],[]]]        # and arrows at each direction of inertia tensor
 
@@ -28,6 +31,67 @@ class Moments(bpy.types.Operator):
     def __del__(self):
         print("End")
 
+    def calculateMoments(self, context, bm):
+        runningSum = 0.000
+        centerOfMass = np.zeros(3)
+        momentOfInertia = np.zeros((3,3))
+        for v in bm.verts:
+            for pc in self.vert_based_patch_constructors:
+                if pc.is_same_type(v):
+                    bezier_patches = pc.get_bezier_patch(v)
+                    for bp in bezier_patches.bezier_coefs:
+                        xCoefs, yCoefs, zCoefs = Helper.list_to_npmatrices(bp, bezier_patches.order_u, bezier_patches.order_v)
+                        #TODO: allMoments incorrectly states what is being calculating, only the first two moments are being calculating
+                        pieceVol, pieceCOM = bbFunctions.allMoments(xCoefs, yCoefs, zCoefs)
+                        runningSum = runningSum + pieceVol
+                        centerOfMass = centerOfMass + pieceCOM
+        for f in bm.faces:
+            for pc in self.face_based_patch_constructors:
+                if pc.is_same_type(f):
+                    bezier_patches = pc.get_bezier_patch(f)
+                    for bp in bezier_patches.bezier_coefs:
+                        xCoefs, yCoefs, zCoefs = Helper.list_to_npmatrices(bp, bezier_patches.order_u, bezier_patches.order_v)
+                        pieceVol, pieceCOM = bbFunctions.allMoments(xCoefs, yCoefs, zCoefs)
+                        runningSum = runningSum + pieceVol
+                        centerOfMass = centerOfMass + pieceCOM 
+        #Center of Mass needs to be normalized by volume
+        centerOfMass = centerOfMass / runningSum
+        #Moment of Inertia calculation needs to be done after calculating center of mass
+        for v in bm.verts:
+            for pc in self.vert_based_patch_constructors:
+                if pc.is_same_type(v):
+                    bezier_patches = pc.get_bezier_patch(v)
+                    for bp in bezier_patches.bezier_coefs:
+                        xCoefs, yCoefs, zCoefs = Helper.list_to_npmatrices(bp, bezier_patches.order_u, bezier_patches.order_v)
+                        pieceMOI = bbFunctions.secondMoment(xCoefs, yCoefs, zCoefs, offset=centerOfMass)
+                        momentOfInertia = momentOfInertia + pieceMOI
+        for f in bm.faces:
+            for pc in self.face_based_patch_constructors:
+                if pc.is_same_type(f):
+                    bezier_patches = pc.get_bezier_patch(f)
+                    for bp in bezier_patches.bezier_coefs:
+                        xCoefs, yCoefs, zCoefs = Helper.list_to_npmatrices(bp, bezier_patches.order_u, bezier_patches.order_v)
+                        pieceMOI = bbFunctions.secondMoment(xCoefs, yCoefs, zCoefs, offset=centerOfMass)
+                        momentOfInertia = momentOfInertia + pieceMOI
+        #To display the moment of inertia, the eigen values and eigenvectors of the matrix needs to be calculated                
+        eigenVectors = np.linalg.eig(momentOfInertia)
+        eigenScalers = np.abs(eigenVectors[0])
+        eigenScalers = eigenScalers / np.amax(eigenScalers) 
+        momentOfInertia = eigenVectors[1]
+        for i in range(0,3):
+            momentOfInertia[:,i] = momentOfInertia[:,i] * eigenScalers[i]
+        print(f"TOTAL SUM = {runningSum}\nCENTER OF MASS = {centerOfMass}\nMOMENT OF INTERTIA = {momentOfInertia}\nEIGENVALUES = {eigenVectors}")
+        momentOfInertia = eigenVectors[1]           
+                        
+        
+        Moments.Volume = runningSum
+        Moments.CoM = np.around(centerOfMass, decimals=3).tolist()
+        momentOfInertia = np.around(momentOfInertia, decimals=3)
+        for i in range(0, 3):
+            for j in range(0,3):
+                Moments.InertiaTens[i][j] = momentOfInertia[j,i]
+        
+        Moments.execute(self = self, context=context)
     @classmethod
     def poll(cls, context):
         """

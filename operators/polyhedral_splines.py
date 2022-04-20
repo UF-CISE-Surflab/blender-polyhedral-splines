@@ -84,9 +84,6 @@ class PolyhedralSplines(bpy.types.Operator):
         bm.faces.ensure_lookup_table()
 
         # Iterate through each vert of the mesh
-        runningSum = 0.000
-        centerOfMass = numpy.zeros(3)
-        momentOfInertia = numpy.zeros((3,3))
         for v in bm.verts:
             # Iterate throgh different type of patch constructors
             for pc in self.vert_based_patch_constructors:
@@ -96,12 +93,6 @@ class PolyhedralSplines(bpy.types.Operator):
                     patch_names = PatchOperator.generate_multiple_patch_obj(bspline_patches)
                     nb_verts = pc.get_neighbor_verts(v)
                     PatchTracker.register_multiple_patches(v, nb_verts, patch_names)
-                    bezier_patches = pc.get_bezier_patch(v)
-                    for bp in bezier_patches.bezier_coefs:
-                        xCoefs, yCoefs, zCoefs = Helper.list_to_npmatrices(bp, bezier_patches.order_u, bezier_patches.order_v)
-                        pieceVolume, pieceCOM= bbFunctions.allMoments(xCoefs, yCoefs, zCoefs)
-                        runningSum = runningSum + pieceVolume
-                        centerOfMass = centerOfMass + pieceCOM
                     print("Generate patch obj time usage (sec): ", time.process_time() - start)
 
         # Iterate through each face of the mesh
@@ -109,48 +100,25 @@ class PolyhedralSplines(bpy.types.Operator):
             for pc in self.face_based_patch_constructors:
                 if pc.is_same_type(f):
                     bspline_patches = pc.get_patch(f)
-                    bezier_patches = pc.get_bezier_patch(f)
-                    for bp in bezier_patches.bezier_coefs:
-                        xCoefs, yCoefs, zCoefs = Helper.list_to_npmatrices(bp, bezier_patches.order_u, bezier_patches.order_v)
-                        pieceVolume, pieceCOM = bbFunctions.allMoments(xCoefs, yCoefs, zCoefs)
-                        runningSum = runningSum + pieceVolume
-                        centerOfMass = centerOfMass + pieceCOM
                     patch_names = PatchOperator.generate_multiple_patch_obj(bspline_patches)
                     nb_verts = pc.get_neighbor_verts(f)
                     PatchTracker.register_multiple_patches(f, nb_verts, patch_names)
 
-        centerOfMass = centerOfMass / runningSum #Normalize center of mass
-        #Calculate moment of inertia at the origin
-        for v in bm.verts:
-            for pc in self.vert_based_patch_constructors:
-                if pc.is_same_type(v):
-                    bezier_patches = pc.get_bezier_patch(v)
-                    for bp in bezier_patches.bezier_coefs:
-                        xCoefs, yCoefs, zCoefs = Helper.list_to_npmatrices(bp, bezier_patches.order_u, bezier_patches.order_v)
-                        pieceMOI = bbFunctions.secondMoment(xCoefs, yCoefs, zCoefs, offset=centerOfMass)
-                        momentOfInertia = momentOfInertia + pieceMOI
-        for f in bm.faces:
-            for pc in self.face_based_patch_constructors:
-                if pc.is_same_type(f):
-                    bezier_patches = pc.get_bezier_patch(f)
-                    for bp in bezier_patches.bezier_coefs:
-                        xCoefs, yCoefs, zCoefs = Helper.list_to_npmatrices(bp, bezier_patches.order_u, bezier_patches.order_v)
-                        pieceMOI = bbFunctions.secondMoment(xCoefs, yCoefs, zCoefs, offset=centerOfMass)
-                        momentOfInertia = momentOfInertia + pieceMOI     
 
-        momentOfInertia = momentOfInertia #/ runningSum / runningSum
+        """ momentOfInertia = momentOfInertia #/ runningSum / runningSum
         eigenVectors = numpy.linalg.eig(momentOfInertia)
         eigenScalers = numpy.abs(eigenVectors[0])
         eigenScalers = eigenScalers / numpy.amax(eigenScalers) 
         print(eigenScalers)
         print(f"TOTAL SUM = {runningSum}\nCENTER OF MASS = {centerOfMass}\nMOMENT OF INTERTIA = {momentOfInertia}\nEIGENVALUES = {eigenVectors}")
-        momentOfInertia = eigenVectors[1] 
-        print(momentOfInertia)
-        momentOfInertia = numpy.transpose(momentOfInertia)
-        print(momentOfInertia)
+        momentOfInertia = eigenVectors[1] """
+        #print(momentOfInertia)
+        #momentOfInertia = numpy.transpose(momentOfInertia)
+        #print(momentOfInertia)
         #for i in range(0,3):
         #    momentOfInertia[:,i] = momentOfInertia[:,i] * eigenScalers[i]
-        print(momentOfInertia)
+        Moments.calculateMoments(self=self, context = context, bm=bm)
+        """print(momentOfInertia)
         Moments.CoM[0] = round(centerOfMass[0], 2)
         Moments.CoM[1] = round(centerOfMass[1], 2)
         Moments.CoM[2] = round(centerOfMass[2], 2)
@@ -164,7 +132,7 @@ class PolyhedralSplines(bpy.types.Operator):
         Moments.InertiaTens[2][0] = round(momentOfInertia[2][0], 2)
         Moments.InertiaTens[2][1] = round(momentOfInertia[2][1], 2)
         Moments.InertiaTens[2][2] = round(momentOfInertia[2][2], 2)
-        Moments.execute(self = self, context= context)
+        Moments.execute(self = self, context= context)"""
 
         # Finish up, write the bmesh back to the mesh
         if control_mesh.is_editmode:
@@ -246,8 +214,5 @@ def update_surface(context, obj):
     facePatchList = list(PatchTracker.fpatch_LUT)
     vertexPatchList = list(PatchTracker.vpatch_LUT)
 
-    for f in facePatchList:
-        none = 0
-    for v in vertexPatchList:
-        none = 0
+    
 bpy.app.handlers.depsgraph_update_post.append(edit_object_change_handler)
