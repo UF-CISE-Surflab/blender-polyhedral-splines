@@ -57,26 +57,9 @@ class ExtraordinaryPatchConstructor(PatchConstructor):
         nb_verts.append(vert)
 
         return nb_verts
-    @classmethod
-    def get_bezier_patch(cls, vert) -> list:
-        deg_u = 3
-        deg_v = 3
-        order_u = deg_u + 1
-        order_v = deg_v + 1
-        valence = len(vert.link_edges)
-        nb_verts = cls.get_neighbor_verts(vert)
-        bezier_coefs = Helper.apply_mask_on_neighbor_verts(cls.masks["eopSct{}".format(valence)], nb_verts)
-        num_of_coef_per_patch = (deg_u + 1) * (deg_v + 1)
-        num_of_patches = len(bezier_coefs) / num_of_coef_per_patch
-        return BezierPatch(
-            order_u=order_u,
-            order_v=order_v,
-            struct_name=cls.name,
-            bezier_coefs=Helper.split_list(bezier_coefs, int(num_of_patches))
-        )
 
     @classmethod
-    def get_patch(cls, vert) -> list:
+    def get_patch(cls, vert, isBspline = True) -> list:
         deg_u = 3
         deg_v = 3
         order_u = deg_u + 1
@@ -94,10 +77,17 @@ class ExtraordinaryPatchConstructor(PatchConstructor):
         # The number of patches = # of rows / # of coef per patch
         num_of_coef_per_patch = (deg_u + 1) * (deg_v + 1)
         num_of_patches = len(bspline_coefs) / num_of_coef_per_patch
-
-        return BsplinePatch(
-            order_u=order_u,
-            order_v=order_v,
-            struct_name=cls.name,
-            bspline_coefs=Helper.split_list(bspline_coefs, int(num_of_patches))
-        )
+        if(isBspline):
+            return BsplinePatch(
+                order_u=order_u,
+                order_v=order_v,
+                struct_name=cls.name,
+                bspline_coefs=Helper.split_list(bspline_coefs, int(num_of_patches))
+            )
+        else:
+            return BezierPatch(
+                order_u=order_u,
+                order_v=order_v,
+                struct_name=cls.name,
+                bezier_coefs=Helper.split_list(bezier_coefs, int(num_of_patches))
+            )

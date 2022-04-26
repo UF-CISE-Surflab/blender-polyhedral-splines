@@ -104,36 +104,7 @@ class PolyhedralSplines(bpy.types.Operator):
                     nb_verts = pc.get_neighbor_verts(f)
                     PatchTracker.register_multiple_patches(f, nb_verts, patch_names)
 
-
-        """ momentOfInertia = momentOfInertia #/ runningSum / runningSum
-        eigenVectors = numpy.linalg.eig(momentOfInertia)
-        eigenScalers = numpy.abs(eigenVectors[0])
-        eigenScalers = eigenScalers / numpy.amax(eigenScalers) 
-        print(eigenScalers)
-        print(f"TOTAL SUM = {runningSum}\nCENTER OF MASS = {centerOfMass}\nMOMENT OF INTERTIA = {momentOfInertia}\nEIGENVALUES = {eigenVectors}")
-        momentOfInertia = eigenVectors[1] """
-        #print(momentOfInertia)
-        #momentOfInertia = numpy.transpose(momentOfInertia)
-        #print(momentOfInertia)
-        #for i in range(0,3):
-        #    momentOfInertia[:,i] = momentOfInertia[:,i] * eigenScalers[i]
         Moments.calculateMoments(self=self, context = context, bm=bm)
-        """print(momentOfInertia)
-        Moments.CoM[0] = round(centerOfMass[0], 2)
-        Moments.CoM[1] = round(centerOfMass[1], 2)
-        Moments.CoM[2] = round(centerOfMass[2], 2)
-        Moments.Volume = abs(round(runningSum, 2))
-        Moments.InertiaTens[0][0] = round(momentOfInertia[0][0], 2)
-        Moments.InertiaTens[0][1] = round(momentOfInertia[0][1], 2)
-        Moments.InertiaTens[0][2] = round(momentOfInertia[0][2], 2)
-        Moments.InertiaTens[1][0] = round(momentOfInertia[1][0], 2)
-        Moments.InertiaTens[1][1] = round(momentOfInertia[1][1], 2)
-        Moments.InertiaTens[1][2] = round(momentOfInertia[1][2], 2)
-        Moments.InertiaTens[2][0] = round(momentOfInertia[2][0], 2)
-        Moments.InertiaTens[2][1] = round(momentOfInertia[2][1], 2)
-        Moments.InertiaTens[2][2] = round(momentOfInertia[2][2], 2)
-        Moments.execute(self = self, context= context)"""
-
         # Finish up, write the bmesh back to the mesh
         if control_mesh.is_editmode:
             bmesh.update_edit_mesh(control_mesh)

@@ -27,14 +27,23 @@ with open("./computedTestData.json") as f:
             yCoefs = numpy.array(surface["yCoefs"])
             zCoefs = numpy.array(surface["zCoefs"])
             individualMomentCalcStartTime = time.process_time()
-            vol, com, moi = bbFunctions.allMoments(xCoefs, yCoefs, zCoefs)
+            vol, com = bbFunctions.allMoments(xCoefs, yCoefs, zCoefs)
             individualMomentCalcTime = time.process_time() - individualMomentCalcStartTime
             runningVolume = runningVolume + vol
             runningCOM = runningCOM + com
-            runningMOI = runningMOI + moi
             totalCalcTime = totalCalcTime + individualMomentCalcTime
         #Normalize Center of Mass
         runningCOM = runningCOM / runningVolume
+        for surface in testCase["testSurfaces"]:
+            xCoefs = numpy.array(surface["xCoefs"])
+            yCoefs = numpy.array(surface["yCoefs"])
+            zCoefs = numpy.array(surface["zCoefs"])
+            individualMomentCalcTime = time.process_time() - individualMomentCalcStartTime
+            moi = bbFunctions.secondMoment(xCoefs, yCoefs, zCoefs, runningCOM)
+            runningMOI = runningMOI + moi
+            totalCalcTime = totalCalcTime + individualMomentCalcTime
+        
+            
         #TODO: perform EIGEN decomposition on the moment of inertia
         if not numpy.allclose(runningVolume,testCase["testVol"]) or not numpy.allclose(runningCOM, numpy.array(testCase["testCOM"])):
             print(Fore.RED +"test: ", testCase["testName"],  ": Failed")

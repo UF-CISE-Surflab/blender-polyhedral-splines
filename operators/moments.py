@@ -38,7 +38,7 @@ class Moments(bpy.types.Operator):
         for v in bm.verts:
             for pc in self.vert_based_patch_constructors:
                 if pc.is_same_type(v):
-                    bezier_patches = pc.get_bezier_patch(v)
+                    bezier_patches = pc.get_patch(v, isBspline = False)
                     for bp in bezier_patches.bezier_coefs:
                         xCoefs, yCoefs, zCoefs = Helper.list_to_npmatrices(bp, bezier_patches.order_u, bezier_patches.order_v)
                         #TODO: allMoments incorrectly states what is being calculating, only the first two moments are being calculating
@@ -48,7 +48,7 @@ class Moments(bpy.types.Operator):
         for f in bm.faces:
             for pc in self.face_based_patch_constructors:
                 if pc.is_same_type(f):
-                    bezier_patches = pc.get_bezier_patch(f)
+                    bezier_patches = pc.get_patch(v, isBspline = False)
                     for bp in bezier_patches.bezier_coefs:
                         xCoefs, yCoefs, zCoefs = Helper.list_to_npmatrices(bp, bezier_patches.order_u, bezier_patches.order_v)
                         pieceVol, pieceCOM = bbFunctions.allMoments(xCoefs, yCoefs, zCoefs)
@@ -60,7 +60,7 @@ class Moments(bpy.types.Operator):
         for v in bm.verts:
             for pc in self.vert_based_patch_constructors:
                 if pc.is_same_type(v):
-                    bezier_patches = pc.get_bezier_patch(v)
+                    bezier_patches = pc.get_patch(v, isBspline = False)
                     for bp in bezier_patches.bezier_coefs:
                         xCoefs, yCoefs, zCoefs = Helper.list_to_npmatrices(bp, bezier_patches.order_u, bezier_patches.order_v)
                         pieceMOI = bbFunctions.secondMoment(xCoefs, yCoefs, zCoefs, offset=centerOfMass)
@@ -68,7 +68,7 @@ class Moments(bpy.types.Operator):
         for f in bm.faces:
             for pc in self.face_based_patch_constructors:
                 if pc.is_same_type(f):
-                    bezier_patches = pc.get_bezier_patch(f)
+                    bezier_patches = pc.get_patch(v, isBspline = False)
                     for bp in bezier_patches.bezier_coefs:
                         xCoefs, yCoefs, zCoefs = Helper.list_to_npmatrices(bp, bezier_patches.order_u, bezier_patches.order_v)
                         pieceMOI = bbFunctions.secondMoment(xCoefs, yCoefs, zCoefs, offset=centerOfMass)

@@ -80,29 +80,11 @@ class NGonPatchConstructor(PatchConstructor):
                                                  num_verts_reserved)
 
     @classmethod
-    def get_bezier_patch(cls, face) -> list:
+    def get_patch(cls, face, isBspline = True) -> list:
         deg_u = 3
         deg_v = 3
         order_u = deg_u + 1
         order_v = deg_v + 1
-        nb_verts = cls.get_neighbor_verts(face)
-
-        # Get valent of vert and apply the corresponding mask
-        valence = Helper.edges_number_of_face(face)
-        bezier_coefs = Helper.apply_mask_on_neighbor_verts(cls.masks["ngonSct{}".format(valence)], nb_verts)
-        num_of_coef_per_patch = (deg_u + 1) * (deg_v + 1)
-        num_of_patches = len(bezier_coefs) / num_of_coef_per_patch
-        return BezierPatch(
-            order_u=order_u,
-            order_v=order_v,
-            struct_name=cls.name,
-            bezier_coefs=Helper.split_list(bezier_coefs, int(num_of_patches))
-        )
-
-    @classmethod
-    def get_patch(cls, face) -> list:
-        deg_u = 3
-        deg_v = 3
         nb_verts = cls.get_neighbor_verts(face)
 
         # Get valent of vert and apply the corresponding mask
@@ -116,10 +98,17 @@ class NGonPatchConstructor(PatchConstructor):
         # The number of patches = # of rows / # of coef per patch
         num_of_coef_per_patch = (deg_u + 1) * (deg_v + 1)
         num_of_patches = len(bspline_coefs) / num_of_coef_per_patch
-
-        return BsplinePatch(
-            order_u=deg_u + 1,
-            order_v=deg_v + 1,
-            struct_name=cls.name,
-            bspline_coefs=Helper.split_list(bspline_coefs, int(num_of_patches))
-        )
+        if(isBspline):
+            return BsplinePatch(
+                order_u=deg_u + 1,
+                order_v=deg_v + 1,
+                struct_name=cls.name,
+                bspline_coefs=Helper.split_list(bspline_coefs, int(num_of_patches))
+            )
+        else:
+            return BezierPatch(
+                order_u=order_u,
+                order_v=order_v,
+                struct_name=cls.name,
+                bezier_coefs=Helper.split_list(bezier_coefs, int(num_of_patches))
+            )

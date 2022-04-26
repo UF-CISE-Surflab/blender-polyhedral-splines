@@ -63,25 +63,7 @@ class T0PatchConstructor(PatchConstructor):
         return Halfedge.get_verts_repeat_n_times(halfedge, commands, 1, get_vert_order, 14)
 
     @classmethod
-    def get_bezier_patch(cls, face) -> list:
-        deg_u = 3
-        deg_v = 3
-        order_u = deg_u + 1
-        order_v = deg_v + 1
-
-        nb_verts = cls.get_neighbor_verts(face)
-        bezier_coefs = Helper.apply_mask_on_neighbor_verts(cls.masks[cls.name], nb_verts)
-        num_of_coef_per_patch = (deg_u + 1) * (deg_v + 1)
-        num_of_patches = len(bezier_coefs) / num_of_coef_per_patch
-        return BezierPatch(
-            order_u=order_u,
-            order_v=order_v,
-            struct_name=cls.name,
-            bezier_coefs=Helper.split_list(bezier_coefs, int(num_of_patches))
-        )
-
-    @classmethod
-    def get_patch(cls, face) -> list:
+    def get_patch(cls, face, isBspline = True) -> list:
         deg_u = 3
         deg_v = 3
         order_u = deg_u + 1
@@ -98,10 +80,17 @@ class T0PatchConstructor(PatchConstructor):
         # The number of patches = # of rows / # of coef per patch
         num_of_coef_per_patch = (deg_u + 1) * (deg_v + 1)
         num_of_patches = len(bspline_coefs) / num_of_coef_per_patch
-
-        return BsplinePatch(
+        if(isBspline):
+            return BsplinePatch(
+                order_u=order_u,
+                order_v=order_v,
+                struct_name=cls.name,
+                bspline_coefs=Helper.split_list(bspline_coefs, int(num_of_patches))
+            )
+        else:
+            return BezierPatch(
             order_u=order_u,
             order_v=order_v,
             struct_name=cls.name,
-            bspline_coefs=Helper.split_list(bspline_coefs, int(num_of_patches))
+            bezier_coefs=Helper.split_list(bezier_coefs, int(num_of_patches))
         )
