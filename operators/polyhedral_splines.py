@@ -1,6 +1,8 @@
+import numpy
 import bpy
 import bmesh
 from bpy.app.handlers import persistent
+from .helper import Helper
 from .reg_patch_constructor import RegPatchConstructor
 from .extraordinary_patch_constructor import ExtraordinaryPatchConstructor
 from .t0_patch_constructor import T0PatchConstructor
@@ -11,7 +13,10 @@ from .polar_patch_constructor import PolarPatchConstructor
 from .two_triangles_two_quads_patch_constructor import TwoTrianglesTwoQuadsPatchConstructor
 from .patch_tracker import PatchTracker
 from .patch import PatchOperator
+from .bivariateBBFunctions import bbFunctions
+from .moments import Moments
 
+import math
 
 # Debug
 import time
@@ -63,6 +68,7 @@ class PolyhedralSplines(bpy.types.Operator):
 
     def execute(self, context):
         self.__init_patch_obj__(context)
+        bpy.ops.ui.reloadtranslation()
         return {'FINISHED'}
 
     def __init_patch_obj__(self, context):
@@ -83,12 +89,10 @@ class PolyhedralSplines(bpy.types.Operator):
             for pc in self.vert_based_patch_constructors:
                 if pc.is_same_type(v):
                     start = time.process_time()
-
                     bspline_patches = pc.get_patch(v)
                     patch_names = PatchOperator.generate_multiple_patch_obj(bspline_patches)
                     nb_verts = pc.get_neighbor_verts(v)
                     PatchTracker.register_multiple_patches(v, nb_verts, patch_names)
-
                     print("Generate patch obj time usage (sec): ", time.process_time() - start)
 
         # Iterate through each face of the mesh
@@ -100,6 +104,7 @@ class PolyhedralSplines(bpy.types.Operator):
                     nb_verts = pc.get_neighbor_verts(f)
                     PatchTracker.register_multiple_patches(f, nb_verts, patch_names)
 
+        Moments.calculateMoments(self=self, context = context, bm=bm)
         # Finish up, write the bmesh back to the mesh
         if control_mesh.is_editmode:
             bmesh.update_edit_mesh(control_mesh)
@@ -136,6 +141,8 @@ def edit_object_change_handler(context):
 def update_surface(context, obj):
     bm = bmesh.from_edit_mesh(obj.data)
     selected_verts = [v for v in bm.verts if v.select]
+
+    
 
     for sv in selected_verts:
         bmesh.update_edit_mesh(obj.data)
@@ -175,5 +182,8 @@ def update_surface(context, obj):
                         PatchOperator.update_patch_obj(vpatch_names[i], bc)
                         i = i + 1
 
+    facePatchList = list(PatchTracker.fpatch_LUT)
+    vertexPatchList = list(PatchTracker.vpatch_LUT)
 
+    
 bpy.app.handlers.depsgraph_update_post.append(edit_object_change_handler)

@@ -35,6 +35,18 @@ class Helper:
             yield list[i:i + num_of_element_per_chunk]
 
     @staticmethod
+    def list_to_npmatrices(vlist, u, v):
+        xCoefs = np.empty((v,u))
+        yCoefs = np.empty((v,u))
+        zCoefs = np.empty((v,u))
+        for i in range(0, v):
+            for j in range(0, u):
+                xCoefs[i][j] = vlist[i*u+j][0]
+                yCoefs[i][j] = vlist[i*u+j][1]
+                zCoefs[i][j] = vlist[i*u+j][2]
+        return xCoefs, yCoefs, zCoefs
+
+    @staticmethod
     def convert_verts_from_matrix_to_list(mat) -> list:
         vlist = []
         for row in mat:

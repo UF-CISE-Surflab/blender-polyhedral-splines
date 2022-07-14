@@ -19,5 +19,5 @@ class PatchConstructor(ABC):
 
     @classmethod
     @abstractmethod
-    def get_patch(cls, obj) -> list:  # List of bezier coef list (multiple patches)
+    def get_patch(cls, obj, isBspline=True) -> list:  # List of bezier coef list (multiple patches)
         pass

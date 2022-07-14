@@ -35,7 +35,7 @@ class PatchOperator:
         template_patch_name = PatchOperator.get_patch_template_name(order_u, order_v)
         patch_obj = 0
 
-        if not template_patch_name:  # no template with wanted u v order
+        if not template_patch_name or template_patch_name not in bpy.data.objects:  # no template with wanted u v order
             patch_obj = PatchOperator.init_patch_template(order_u, order_v)
             PatchOperator.add_patch_name_to_dict(order_u, order_v, patch_obj.name)
         else:
