@@ -1,7 +1,7 @@
 from .patch_constructor import PatchConstructor
 from .halfedge import Halfedge
 from .bezier_bspline_converter import BezierBsplineConverter
-from .patch import BezierPatch, BsplinePatch
+from .patch import BsplinePatch
 from .helper import Helper
 from .polar_patch_constructor import PolarPatchConstructor
 
@@ -83,7 +83,7 @@ class TwoTrianglesTwoQuadsPatchConstructor(PatchConstructor):
         return nb_verts
 
     @classmethod
-    def get_patch(cls, vert, isBspline = True) -> list:
+    def get_patch(cls, vert) -> list:
         # Mask * nb_Verts = bezier coefs for single or multiple patches
         nb_verts = cls.get_neighbor_verts(vert)
         bezier_coefs = Helper.apply_mask_on_neighbor_verts(cls.mask, nb_verts)
@@ -95,17 +95,10 @@ class TwoTrianglesTwoQuadsPatchConstructor(PatchConstructor):
         # The number of patches = # of rows / # of coef per patch
         num_of_coef_per_patch = (cls.deg_u + 1) * (cls.deg_v + 1)
         num_of_patches = len(bspline_coefs) / num_of_coef_per_patch
-        if(isBspline):
-            return BsplinePatch(
-                order_u=3,
-                order_v=3,
-                struct_name=cls.name,
-                bspline_coefs=Helper.split_list(bspline_coefs, int(num_of_patches))
-            )
-        else:
-            return BezierPatch(
-                order_u=3,
-                order_v=3,
-                struct_name=cls.name,
-                bezier_coefs=Helper.split_list(bezier_coefs, int(num_of_patches))
-            )
+
+        return BsplinePatch(
+            order_u=3,
+            order_v=3,
+            struct_name=cls.name,
+            bspline_coefs=Helper.split_list(bspline_coefs, int(num_of_patches))
+        )
