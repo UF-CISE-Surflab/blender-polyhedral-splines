@@ -94,6 +94,8 @@ class PolyhedralSplines(bpy.types.Operator):
                     nb_verts = pc.get_neighbor_verts(v)
                     PatchTracker.register_multiple_patches(v, nb_verts, patch_names)
                     print("Generate patch obj time usage (sec): ", time.process_time() - start)
+                    for patch_name in patch_names:
+                        bpy.context.scene.objects[patch_name].parent = obj
 
         # Iterate through each face of the mesh
         for f in bm.faces:
@@ -103,6 +105,8 @@ class PolyhedralSplines(bpy.types.Operator):
                     patch_names = PatchOperator.generate_multiple_patch_obj(bspline_patches)
                     nb_verts = pc.get_neighbor_verts(f)
                     PatchTracker.register_multiple_patches(f, nb_verts, patch_names)
+                    for patch_name in patch_names:
+                        bpy.context.scene.objects[patch_name].parent = obj
 
         Moments.calculateMoments(self=self, context = context, bm=bm)
         # Finish up, write the bmesh back to the mesh
