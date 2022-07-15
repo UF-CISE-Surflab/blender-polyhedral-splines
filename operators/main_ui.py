@@ -2,6 +2,7 @@ from .highlighter import Highlighter
 from .polyhedral_splines import PolyhedralSplines
 from .ui_color import COLOR_OT_TemplateOperator
 from .moments import Moments
+from .ui_helper import ToggleFaces, ToggleSurfPatchCollection
 import bpy
 
 
@@ -23,6 +24,8 @@ class MainUI(bpy.types.Panel):
         layout.operator(operator=Highlighter.bl_idname, text="Inspect Mesh")
         layout.operator(operator=PolyhedralSplines.bl_idname, text="Generate Bspline Patches")
         layout.operator(operator=COLOR_OT_TemplateOperator.bl_idname, text="Patch Color")
+        layout.operator(operator=ToggleFaces.bl_idname, text="Toggle Mesh Faces")
+        layout.operator(operator=ToggleSurfPatchCollection.bl_idname, text="Toggle SurfPatch Collection")
 
         layout.label(text="Volume: " + str(Moments.Volume))
         layout.label(text="Center of Mass: " + str(Moments.CoM))
