@@ -59,7 +59,7 @@ class ExtraordinaryPatchConstructor(PatchConstructor):
         return nb_verts
 
     @classmethod
-    def get_patch(cls, vert, isBspline = True) -> list:
+    def get_patch(cls, vert, isBspline = True) -> BsplinePatch | BezierPatch:
         deg_u = 3
         deg_v = 3
         order_u = deg_u + 1
@@ -77,6 +77,7 @@ class ExtraordinaryPatchConstructor(PatchConstructor):
         # The number of patches = # of rows / # of coef per patch
         num_of_coef_per_patch = (deg_u + 1) * (deg_v + 1)
         num_of_patches = len(bspline_coefs) / num_of_coef_per_patch
+        
         if(isBspline):
             return BsplinePatch(
                 order_u=order_u,

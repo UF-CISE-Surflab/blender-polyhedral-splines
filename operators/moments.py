@@ -1,7 +1,9 @@
+from .patch import BezierPatch
+from .patch_helper import PatchHelper
 from .helper import Helper
 from .bivariateBBFunctions import bbFunctions
 from random import randint
-from unittest.loader import VALID_MODULE_NAME
+#from unittest.loader import VALID_MODULE_NAME
 import bpy
 import bmesh
 import time
@@ -9,21 +11,21 @@ import math
 from math import factorial
 import numpy as np
 import mathutils
-
+from bpy.app.handlers import persistent
 
 
 class Moments(bpy.types.Operator):
-
+    bl_label = "Calculate Moments"
+    bl_idname = "object.moments"
     
     Volume = 0                       # display volume in UI
     CoM = [[], [], []]                        # put point at center of mass
     InertiaTens = [[[],[],[]],[[],[],[]],[[],[],[]]]        # and arrows at each direction of inertia tensor
 
-
-    bl_label = "Calculate Moments"
-    bl_idname = "object.moments"
-
-    momentsGen = False
+    CurrentSelection: None              #Type: Blender Object
+    ControlMeshNames: list[str] = []
+    CenterOfMassObj = None              #Type: Blender Object
+    ArrowObjs = []                      #Type: List of Blender Objects
 
     def __init__(self):
         print("Start")
@@ -31,48 +33,91 @@ class Moments(bpy.types.Operator):
     def __del__(self):
         print("End")
 
-    def calculateMoments(self, context, bm):
+    @classmethod
+    def poll(cls, context):
+        """
+        obj = context.active_object
+        if obj == None:
+            print("No active object.")
+            return False
+        else:
+            return True
+        """
+
+        return True
+
+
+    def execute(self, context):
+        if Moments.CurrentSelection is None:
+            Moments.CurrentSelection = context.view_layers[0].objects.active
+            if Moments.CurrentSelection.name in Moments.ControlMeshNames:
+                Moments.cleanupObjects()
+                Moments.recalculateMoments(context, Moments.CurrentSelection.name)
+                Moments.createCenterOfMass(context, Moments.CoM)                            #display center of mass as vertex and small sphere for visibility
+                                                                                            # TODO: variable size based on madnitude of vector
+                                                                                            #      calculate rotation from vector
+                Moments.createArrows(context)
+            
+        return {'FINISHED'}
+
+    def cleanupObjects():
+        #Delete arrow objects
+        for arrow in Moments.ArrowObjs:
+            objs = bpy.data.objects
+            objs.remove(objs[arrow.name])
+        Moments.ArrowObjs.clear()
+
+        #Delete old center of mass object
+        if Moments.CenterOfMassObj is not None:
+            objs = bpy.data.objects
+            objs.remove(objs[Moments.CenterOfMassObj.name])
+            Moments.CenterOfMassObj = None
+
+    def createArrows(context):
+        Moments.createArrow(context, np.linalg.norm(Moments.InertiaTens[0])/5, (1, 0, 0, 1), Moments.InertiaTens[0])     #context, location, size, color(RGBA), rotation
+        Moments.createArrow(context, np.linalg.norm(Moments.InertiaTens[1])/5, (0, 1, 0, 1), Moments.InertiaTens[1])     #context, location, size, color(RGBA), rotation
+        Moments.createArrow(context, np.linalg.norm(Moments.InertiaTens[2])/5, (0, 0, 1, 1), Moments.InertiaTens[2])     #context, location, size, color(RGBA), rotation
+
+    def recalculateMoments(context, controlMeshName):
+        mesh = Moments.CurrentSelection.data
+        bm = bmesh.new()
+        bm.from_mesh(mesh)
+        Moments.calculateMoments(context, bm, controlMeshName)
+
+    def calculateMoments(context, bm, controlMeshName):
+
+        if controlMeshName not in Moments.ControlMeshNames:
+            Moments.ControlMeshNames.append(controlMeshName)
+
+        sourceObj = bpy.context.scene.objects[controlMeshName]
+
         runningSum = 0.000
         centerOfMass = np.zeros(3)
         momentOfInertia = np.zeros((3,3))
-        for v in bm.verts:
-            for pc in self.vert_based_patch_constructors:
-                if pc.is_same_type(v):
-                    bezier_patches = pc.get_patch(v, isBspline = False)
-                    for bp in bezier_patches.bezier_coefs:
-                        xCoefs, yCoefs, zCoefs = Helper.list_to_npmatrices(bp, bezier_patches.order_u, bezier_patches.order_v)
-                        #TODO: allMoments incorrectly states what is being calculating, only the first two moments are being calculating
-                        pieceVol, pieceCOM = bbFunctions.allMoments(xCoefs, yCoefs, zCoefs)
-                        runningSum = runningSum + pieceVol
-                        centerOfMass = centerOfMass + pieceCOM
-        for f in bm.faces:
-            for pc in self.face_based_patch_constructors:
-                if pc.is_same_type(f):
-                    bezier_patches = pc.get_patch(v, isBspline = False)
-                    for bp in bezier_patches.bezier_coefs:
-                        xCoefs, yCoefs, zCoefs = Helper.list_to_npmatrices(bp, bezier_patches.order_u, bezier_patches.order_v)
-                        pieceVol, pieceCOM = bbFunctions.allMoments(xCoefs, yCoefs, zCoefs)
-                        runningSum = runningSum + pieceVol
-                        centerOfMass = centerOfMass + pieceCOM 
+
+        #Center of mass calculation
+        comPatches = PatchHelper.getPatches(bm, False)
+        for patch in comPatches:
+            bezierPatch: BezierPatch = patch.patch
+            for bp in bezierPatch.bezier_coefs:
+                xCoefs, yCoefs, zCoefs = Helper.list_to_npmatrices(bp, bezierPatch.order_u, bezierPatch.order_v)
+                #TODO: allMoments incorrectly states what is being calculating, only the first two moments are being calculating
+                pieceVol, pieceCOM = bbFunctions.allMoments(xCoefs, yCoefs, zCoefs)
+                runningSum = runningSum + pieceVol
+                centerOfMass = centerOfMass + pieceCOM
         #Center of Mass needs to be normalized by volume
         centerOfMass = centerOfMass / runningSum
+        centerOfMass = centerOfMass + np.array(sourceObj.location)
+
         #Moment of Inertia calculation needs to be done after calculating center of mass
-        for v in bm.verts:
-            for pc in self.vert_based_patch_constructors:
-                if pc.is_same_type(v):
-                    bezier_patches = pc.get_patch(v, isBspline = False)
-                    for bp in bezier_patches.bezier_coefs:
-                        xCoefs, yCoefs, zCoefs = Helper.list_to_npmatrices(bp, bezier_patches.order_u, bezier_patches.order_v)
-                        pieceMOI = bbFunctions.secondMoment(xCoefs, yCoefs, zCoefs, offset=centerOfMass)
-                        momentOfInertia = momentOfInertia + pieceMOI
-        for f in bm.faces:
-            for pc in self.face_based_patch_constructors:
-                if pc.is_same_type(f):
-                    bezier_patches = pc.get_patch(v, isBspline = False)
-                    for bp in bezier_patches.bezier_coefs:
-                        xCoefs, yCoefs, zCoefs = Helper.list_to_npmatrices(bp, bezier_patches.order_u, bezier_patches.order_v)
-                        pieceMOI = bbFunctions.secondMoment(xCoefs, yCoefs, zCoefs, offset=centerOfMass)
-                        momentOfInertia = momentOfInertia + pieceMOI
+        inertiaPatches = PatchHelper.getPatches(bm, False)      #Can't reuse the patches up there for some reason, so grab a new set here for intertia calculations
+        for patch in inertiaPatches:
+            bezierPatch: BezierPatch = patch.patch
+            for bp in bezierPatch.bezier_coefs:
+                xCoefs, yCoefs, zCoefs = Helper.list_to_npmatrices(bp, bezierPatch.order_u, bezierPatch.order_v)
+                pieceMOI = bbFunctions.secondMoment(xCoefs, yCoefs, zCoefs, offset=centerOfMass)
+                momentOfInertia = momentOfInertia + pieceMOI
+
         #To display the moment of inertia, the eigen values and eigenvectors of the matrix needs to be calculated                
         eigenVectors = np.linalg.eig(momentOfInertia)
         eigenScalers = np.abs(eigenVectors[0])
@@ -81,8 +126,7 @@ class Moments(bpy.types.Operator):
         for i in range(0,3):
             momentOfInertia[:,i] = momentOfInertia[:,i] * eigenScalers[i]
         print(f"TOTAL SUM = {runningSum}\nCENTER OF MASS = {centerOfMass}\nMOMENT OF INTERTIA = {momentOfInertia}\nEIGENVALUES = {eigenVectors}")
-        momentOfInertia = eigenVectors[1]           
-                        
+        momentOfInertia = eigenVectors[1]
         
         Moments.Volume = runningSum
         Moments.CoM = np.around(centerOfMass, decimals=3).tolist()
@@ -91,53 +135,24 @@ class Moments(bpy.types.Operator):
             for j in range(0,3):
                 Moments.InertiaTens[i][j] = momentOfInertia[j,i]
         
-        Moments.execute(self = self, context=context)
-    @classmethod
-    def poll(cls, context):
-        """
-        Make the addon only can be found when object is active
-        
-        
-        obj = context.active_object
-        if obj == None:
-            print("No active object.")
-            return False
-        else:
-            return True
-        """
-        return True
-    def execute(self, context):
-
-        Moments.CenterOfMass(self = self, context = context, CoM = Moments.CoM)    #display center of mass as vertex and small sphere for visibility
-                                                                                    #TODO: variable size based on madnitude of vector
-                                                                                    #      calculate rotation from vector
-        Moments.createArrow(self = self, context = context, location = Moments.CoM, size = np.linalg.norm(Moments.InertiaTens[0])/5, color = (1, 0, 0, 1), rotation = Moments.InertiaTens[0])     #context, location, size, color(RGBA), rotation
-        Moments.createArrow(self = self, context = context, location = Moments.CoM, size = np.linalg.norm(Moments.InertiaTens[1])/5, color = (0, 1, 0, 1), rotation = Moments.InertiaTens[1])     #context, location, size, color(RGBA), rotation
-        Moments.createArrow(self = self, context = context, location = Moments.CoM, size = np.linalg.norm(Moments.InertiaTens[2])/5, color = (0, 0, 1, 1), rotation = Moments.InertiaTens[2])     #context, location, size, color(RGBA), rotation
-
-        return {'FINISHED'}
-
-        
-    def CenterOfMass(self, context, CoM):
-
-        verts = [(0, 0, 0)]
-        edges = []
-        faces = []
-        bpy.ops.mesh.primitive_uv_sphere_add(radius=0.1, enter_editmode=False, align ='WORLD', location =CoM)
-
-
+    def createCenterOfMass(context, CoM):
         mesh = bpy.data.meshes.new("Point")
         obj = bpy.data.objects.new("CenterOfMass", mesh)
 
         obj.location = CoM
-        context.collection.objects.link(obj)
+        bpy.context.collection.objects.link(obj)
 
-        mesh.from_pydata(verts, edges, faces)
-        mesh.update()
+        # Construct the bmesh sphere and assign it to the blender mesh.
+        bm = bmesh.new()
+        bmesh.ops.create_uvsphere(bm, u_segments=32, v_segments=16, radius=0.1)
+        bm.to_mesh(mesh)
+        bm.free()
+
+        Moments.CenterOfMassObj = obj
 
 
     i = 0
-    def createArrow(self, context, location, size, color, rotation):
+    def createArrow(context, size, color, rotation):
 
         verts = [(0*2, 0.0221108*2, -2.38419e-07*2), (1.50453e-09*2, 6.7131e-09*2, 2.2895+size),
                  (0.00431361*2, 0.021686*2, -2.38419e-07*2), (0.00846145*2, 0.0204277*2, -2.38419e-07*2),
@@ -220,8 +235,8 @@ class Moments(bpy.types.Operator):
                  (39, 71, 72, 40, ), (38, 70, 71, 39, ), (37, 69, 70, 38, ), (36, 68, 69, 37, ), (35, 67, 68, 36, ), (34, 66, 67, 35, ), (33, 65, 66, 34, ), ]
         mesh = bpy.data.meshes.new("arrow")
         obj = bpy.data.objects.new("arrow", mesh)
+        obj.parent = Moments.CenterOfMassObj
 
-        obj.location = location
         bpy.context.collection.objects.link(obj)
 
         mat = bpy.data.materials.new(name="ArrowMat"+str(Moments.i))
@@ -255,4 +270,20 @@ class Moments(bpy.types.Operator):
 
         mesh.from_pydata(verts, edges, faces)
         mesh.update()
+
+        Moments.ArrowObjs.append(obj)
         
+
+@persistent
+def objectHandler(context):
+    obj = bpy.context.active_object
+
+    if obj.name in Moments.ControlMeshNames:
+        Moments.execute(None, context)
+    else:
+        Moments.cleanupObjects()
+        Moments.CurrentSelection = None
+
+    return None
+
+bpy.app.handlers.depsgraph_update_post.append(objectHandler)

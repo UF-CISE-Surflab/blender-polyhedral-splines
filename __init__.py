@@ -5,6 +5,7 @@ from .operators.highlighter import Highlighter
 from .operators.main_ui import MainUI
 from .operators.ui_helper import ToggleFaces, ToggleSurfPatchCollection
 from .operators.ui_color import COLOR_OT_TemplateOperator
+from .operators.moments import Moments
 
 bl_info = {
     "name": "polyhedral_splines",
@@ -20,7 +21,8 @@ classes = (
     ToggleFaces,
     ToggleSurfPatchCollection,
     MainUI,
-    COLOR_OT_TemplateOperator
+    COLOR_OT_TemplateOperator,
+    Moments
 )
 
 register, unregister = bpy.utils.register_classes_factory(classes)
