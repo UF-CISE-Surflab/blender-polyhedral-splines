@@ -35,28 +35,19 @@ class Moments(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        """
         obj = context.active_object
-        if obj == None:
-            print("No active object.")
-            return False
-        else:
+        if obj.name in Moments.ControlMeshNames:
             return True
-        """
+        return False
 
-        return True
-
-
+    # TODO: variable size based on madnitude of vector                                                                                                
+    # calculate rotation from vector
     def execute(self, context):
-        if Moments.CurrentSelection is None:
-            Moments.CurrentSelection = context.view_layers[0].objects.active
-            if Moments.CurrentSelection.name in Moments.ControlMeshNames:
-                Moments.cleanupObjects()
-                Moments.recalculateMoments(context, Moments.CurrentSelection.name)
-                Moments.createCenterOfMass(context, Moments.CoM)                            #display center of mass as vertex and small sphere for visibility
-                                                                                            # TODO: variable size based on madnitude of vector
-                                                                                            #      calculate rotation from vector
-                Moments.createArrows(context)
+        Moments.CurrentSelection = context.view_layer.objects.active
+        Moments.cleanupObjects()
+        Moments.recalculateMoments(context, Moments.CurrentSelection.name)
+        Moments.createCenterOfMass(context, Moments.CoM)
+        Moments.createArrows(context)
             
         return {'FINISHED'}
 
@@ -276,11 +267,9 @@ class Moments(bpy.types.Operator):
 
 @persistent
 def objectHandler(context):
-    obj = bpy.context.active_object
+    selected = bpy.context.selected_objects
 
-    if obj.name in Moments.ControlMeshNames:
-        Moments.execute(None, context)
-    else:
+    if Moments.CurrentSelection not in selected:
         Moments.cleanupObjects()
         Moments.CurrentSelection = None
 

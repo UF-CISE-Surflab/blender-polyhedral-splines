@@ -26,7 +26,7 @@ class MainUI(bpy.types.Panel):
         layout.operator(operator=COLOR_OT_TemplateOperator.bl_idname, text="Patch Color")
         layout.operator(operator=ToggleFaces.bl_idname, text="Toggle Mesh Faces")
         layout.operator(operator=ToggleSurfPatchCollection.bl_idname, text="Toggle SurfPatch Collection")
-        #layout.operator(operator=Moments.bl_idname, text="Recompute Moments")
+        layout.operator(operator=Moments.bl_idname, text="Calculate Moments")
 
         layout.label(text="Volume: " + str(Moments.Volume))
         layout.label(text="Center of Mass: " + str(Moments.CoM))
