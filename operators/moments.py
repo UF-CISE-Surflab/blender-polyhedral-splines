@@ -51,6 +51,13 @@ class Moments(bpy.types.Operator):
             
         return {'FINISHED'}
 
+    def executeBM(context, bm, controlMeshName):
+        Moments.CurrentSelection = context.view_layer.objects[controlMeshName]
+        Moments.cleanupObjects()
+        Moments.calculateMoments(context, bm, Moments.CurrentSelection.name)
+        Moments.createCenterOfMass(context, Moments.CoM)
+        Moments.createArrows(context)
+
     def cleanupObjects():
         #Delete arrow objects
         for arrow in Moments.ArrowObjs:

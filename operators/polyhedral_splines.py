@@ -65,7 +65,13 @@ class PolyhedralSplines(bpy.types.Operator):
         else:
             return True
         """
-        return True
+
+        obj = context.active_object
+        selected = context.selected_objects
+
+        if obj in selected and obj.mode == "OBJECT" and obj.type == "MESH":
+            return True
+        return False
 
     def execute(self, context):
         self.__init_patch_obj__(context)
@@ -95,7 +101,9 @@ class PolyhedralSplines(bpy.types.Operator):
 
             print("Generate patch obj time usage (sec): ", time.process_time() - start)
 
-        Moments.calculateMoments(context, bm, obj.name)
+        obj.select_set(True)
+        bpy.context.view_layer.objects.active = obj
+        Moments.executeBM(context, bm, obj.name)
         # Finish up, write the bmesh back to the mesh
         if control_mesh.is_editmode:
             bmesh.update_edit_mesh(control_mesh)
