@@ -50,22 +50,6 @@ class PolyhedralSplines(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        """
-        Make the addon only can be found when object is active
-        and it is a mesh in edit mode.
-        """
-        """
-        obj = context.active_object
-        if obj == None:
-            print("No active object.")
-            return False
-        elif obj.mode != 'EDIT' or obj.type != 'MESH':
-            print("Not in edit mode or the object is not mesh.")
-            return False
-        else:
-            return True
-        """
-
         obj = context.active_object
         selected = context.selected_objects
 

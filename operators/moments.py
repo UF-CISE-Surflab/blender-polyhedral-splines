@@ -36,7 +36,9 @@ class Moments(bpy.types.Operator):
     @classmethod
     def poll(cls, context):
         obj = context.active_object
-        if obj.name in Moments.ControlMeshNames:
+        selected = context.selected_objects
+
+        if obj in selected and obj.name in Moments.ControlMeshNames:
             return True
         return False
 
@@ -272,6 +274,7 @@ class Moments(bpy.types.Operator):
         Moments.ArrowObjs.append(obj)
         
 
+#Remove arrows when deselecting object
 @persistent
 def objectHandler(context):
     selected = bpy.context.selected_objects
@@ -283,3 +286,16 @@ def objectHandler(context):
     return None
 
 bpy.app.handlers.depsgraph_update_post.append(objectHandler)
+
+#Clean up member variables on scene change
+@persistent
+def sceneLoadHandler(context):
+    Moments.Volume = 0
+    Moments.CoM = [[], [], []]
+    Moments.InertiaTens = [[[],[],[]],[[],[],[]],[[],[],[]]]
+    Moments.CurrentSelection = None
+    Moments.ControlMeshNames = []
+    Moments.CenterOfMassObj = None
+    Moments.ArrowObjs = []
+
+bpy.app.handlers.load_post.append(sceneLoadHandler)
