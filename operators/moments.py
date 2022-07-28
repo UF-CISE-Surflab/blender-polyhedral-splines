@@ -47,18 +47,12 @@ class Moments(bpy.types.Operator):
     def execute(self, context):
         Moments.CurrentSelection = context.view_layer.objects.active
         Moments.cleanupObjects()
-        Moments.recalculateMoments(context, Moments.CurrentSelection.name)
-        Moments.createCenterOfMass(context, Moments.CoM)
-        Moments.createArrows(context)
-            
-        return {'FINISHED'}
 
-    def executeBM(context, bm, controlMeshName):
-        Moments.CurrentSelection = context.view_layer.objects[controlMeshName]
-        Moments.cleanupObjects()
-        Moments.calculateMoments(context, bm, Moments.CurrentSelection.name)
+        Moments.calculateMoments(context, Moments.CurrentSelection.name)
         Moments.createCenterOfMass(context, Moments.CoM)
         Moments.createArrows(context)
+
+        return {'FINISHED'}
 
     def cleanupObjects():
         #Delete arrow objects
@@ -78,13 +72,10 @@ class Moments(bpy.types.Operator):
         Moments.createArrow(context, np.linalg.norm(Moments.InertiaTens[1])/5, (0, 1, 0, 1), Moments.InertiaTens[1])     #context, location, size, color(RGBA), rotation
         Moments.createArrow(context, np.linalg.norm(Moments.InertiaTens[2])/5, (0, 0, 1, 1), Moments.InertiaTens[2])     #context, location, size, color(RGBA), rotation
 
-    def recalculateMoments(context, controlMeshName):
+    def calculateMoments(context, controlMeshName):
         mesh = Moments.CurrentSelection.data
         bm = bmesh.new()
         bm.from_mesh(mesh)
-        Moments.calculateMoments(context, bm, controlMeshName)
-
-    def calculateMoments(context, bm, controlMeshName):
 
         if controlMeshName not in Moments.ControlMeshNames:
             Moments.ControlMeshNames.append(controlMeshName)

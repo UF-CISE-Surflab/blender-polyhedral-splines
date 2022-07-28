@@ -1,11 +1,11 @@
 import bpy
-
 from .operators.polyhedral_splines import PolyhedralSplines
 from .operators.highlighter import Highlighter
 from .operators.main_ui import MainUI
 from .operators.ui_helper import ToggleFaces, ToggleSurfPatchCollection
 from .operators.ui_color import COLOR_OT_TemplateOperator
 from .operators.moments import Moments
+from .operators.subdivide_mesh import SubdivideMesh
 
 bl_info = {
     "name": "polyhedral_splines",
@@ -22,7 +22,8 @@ classes = (
     ToggleSurfPatchCollection,
     MainUI,
     COLOR_OT_TemplateOperator,
-    Moments
+    Moments,
+    SubdivideMesh
 )
 
 register, unregister = bpy.utils.register_classes_factory(classes)

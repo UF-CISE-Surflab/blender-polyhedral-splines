@@ -26,6 +26,7 @@ import time
 class PolyhedralSplines(bpy.types.Operator):
     bl_label = "Interactive Modeling"
     bl_idname = "object.polyhedral_splines"
+    bl_description = "Generates polyhedral spline mesh. Some mesh configurations are not supported, subdivide the mesh beforehand if this is the case"
 
     # The algorithm using face as center
     face_based_patch_constructors: list = [
@@ -87,7 +88,7 @@ class PolyhedralSplines(bpy.types.Operator):
 
         obj.select_set(True)
         bpy.context.view_layer.objects.active = obj
-        Moments.executeBM(context, bm, obj.name)
+        Moments.execute(self, context)
         # Finish up, write the bmesh back to the mesh
         if control_mesh.is_editmode:
             bmesh.update_edit_mesh(control_mesh)
