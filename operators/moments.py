@@ -17,6 +17,7 @@ from bpy.app.handlers import persistent
 class Moments(bpy.types.Operator):
     bl_label = "Calculate Moments"
     bl_idname = "object.moments"
+    bl_description = "Calculates moment inertia values for the active object. Values are displayed on the bottom of the panel"
     
     Volume = 0                       # display volume in UI
     CoM = [[], [], []]                        # put point at center of mass
