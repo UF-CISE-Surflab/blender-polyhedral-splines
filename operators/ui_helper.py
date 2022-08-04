@@ -25,10 +25,10 @@ class ToggleFaces(bpy.types.Operator):
                         break
         return {'FINISHED'}
 
-    def menu_func(self, context):
-        self.layout.operator(ToggleFaces.bl_idname)
+    #def menu_func(self, context):
+    #    self.layout.operator(ToggleFaces.bl_idname)
 
-    bpy.types.VIEW3D_MT_view.append(menu_func)
+    #bpy.types.VIEW3D_MT_view.append(menu_func)
 
 
 class ToggleSurfPatchCollection(bpy.types.Operator):
@@ -46,7 +46,7 @@ class ToggleSurfPatchCollection(bpy.types.Operator):
                         break
         return {'FINISHED'}
 
-    def menu_func(self, context):
-        self.layout.operator(ToggleSurfPatchCollection.bl_idname)
+    #def menu_func(self, context):
+    #    self.layout.operator(ToggleSurfPatchCollection.bl_idname)
 
-    bpy.types.VIEW3D_MT_view.append(menu_func)
+    #bpy.types.VIEW3D_MT_view.append(menu_func)

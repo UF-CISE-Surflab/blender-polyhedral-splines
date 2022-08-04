@@ -2,6 +2,7 @@ import numpy
 import bpy
 import bmesh
 from bpy.app.handlers import persistent
+from .patch_helper import PatchHelper
 from .helper import Helper
 from .reg_patch_constructor import RegPatchConstructor
 from .extraordinary_patch_constructor import ExtraordinaryPatchConstructor
@@ -25,6 +26,7 @@ import time
 class PolyhedralSplines(bpy.types.Operator):
     bl_label = "Interactive Modeling"
     bl_idname = "object.polyhedral_splines"
+    bl_description = "Generates polyhedral spline mesh. Some mesh configurations are not supported, subdivide the mesh beforehand if this is the case"
 
     # The algorithm using face as center
     face_based_patch_constructors: list = [
@@ -49,22 +51,12 @@ class PolyhedralSplines(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        """
-        Make the addon only can be found when object is active
-        and it is a mesh in edit mode.
-        """
-        """
         obj = context.active_object
-        if obj == None:
-            print("No active object.")
-            return False
-        elif obj.mode != 'EDIT' or obj.type != 'MESH':
-            print("Not in edit mode or the object is not mesh.")
-            return False
-        else:
+        selected = context.selected_objects
+
+        if obj in selected and obj.mode == "OBJECT" and obj.type == "MESH":
             return True
-        """
-        return True
+        return False
 
     def execute(self, context):
         self.__init_patch_obj__(context)
@@ -83,28 +75,20 @@ class PolyhedralSplines(bpy.types.Operator):
         bm.verts.ensure_lookup_table()
         bm.faces.ensure_lookup_table()
 
-        # Iterate through each vert of the mesh
-        for v in bm.verts:
-            # Iterate throgh different type of patch constructors
-            for pc in self.vert_based_patch_constructors:
-                if pc.is_same_type(v):
-                    start = time.process_time()
-                    bspline_patches = pc.get_patch(v)
-                    patch_names = PatchOperator.generate_multiple_patch_obj(bspline_patches)
-                    nb_verts = pc.get_neighbor_verts(v)
-                    PatchTracker.register_multiple_patches(v, nb_verts, patch_names)
-                    print("Generate patch obj time usage (sec): ", time.process_time() - start)
+        patchWrappers = PatchHelper.getPatches(bm)
+        for patchWrapper in patchWrappers:
+            start = time.process_time()
 
-        # Iterate through each face of the mesh
-        for f in bm.faces:
-            for pc in self.face_based_patch_constructors:
-                if pc.is_same_type(f):
-                    bspline_patches = pc.get_patch(f)
-                    patch_names = PatchOperator.generate_multiple_patch_obj(bspline_patches)
-                    nb_verts = pc.get_neighbor_verts(f)
-                    PatchTracker.register_multiple_patches(f, nb_verts, patch_names)
+            patchNames = PatchOperator.generate_multiple_patch_obj(patchWrapper.patch)
+            PatchTracker.register_multiple_patches(patchWrapper.source, patchWrapper.neighbors, patchNames)
+            for patch_name in patchNames:
+                bpy.context.scene.objects[patch_name].parent = obj
 
-        Moments.calculateMoments(self=self, context = context, bm=bm)
+            print("Generate patch obj time usage (sec): ", time.process_time() - start)
+
+        obj.select_set(True)
+        bpy.context.view_layer.objects.active = obj
+        Moments.execute(self, context)
         # Finish up, write the bmesh back to the mesh
         if control_mesh.is_editmode:
             bmesh.update_edit_mesh(control_mesh)
