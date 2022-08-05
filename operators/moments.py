@@ -69,9 +69,11 @@ class Moments(bpy.types.Operator):
             Moments.CenterOfMassObj = None
 
     def createArrows(context):
-        Moments.createArrow(context, np.linalg.norm(Moments.InertiaTens[0])/5, (1, 0, 0, 1), Moments.InertiaTens[0])     #context, location, size, color(RGBA), rotation
-        Moments.createArrow(context, np.linalg.norm(Moments.InertiaTens[1])/5, (0, 1, 0, 1), Moments.InertiaTens[1])     #context, location, size, color(RGBA), rotation
-        Moments.createArrow(context, np.linalg.norm(Moments.InertiaTens[2])/5, (0, 0, 1, 1), Moments.InertiaTens[2])     #context, location, size, color(RGBA), rotation
+        volumeScale = (abs(Moments.Volume) ** (1.0 / 3.0))
+        objectScale = Moments.CurrentSelection.scale
+        Moments.createArrow(context, np.linalg.norm(Moments.InertiaTens[0]) * volumeScale * objectScale[0], (1, 0, 0, 1), Moments.InertiaTens[0])     #context, size, color(RGBA), rotation
+        Moments.createArrow(context, np.linalg.norm(Moments.InertiaTens[1]) * volumeScale * objectScale[1], (0, 1, 0, 1), Moments.InertiaTens[1])     #context, size, color(RGBA), rotation
+        Moments.createArrow(context, np.linalg.norm(Moments.InertiaTens[2]) * volumeScale * objectScale[2], (0, 0, 1, 1), Moments.InertiaTens[2])     #context, size, color(RGBA), rotation
 
     def calculateMoments(context, controlMeshName):
         mesh = Moments.CurrentSelection.data
