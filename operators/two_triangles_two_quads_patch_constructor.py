@@ -78,7 +78,7 @@ class TwoTrianglesTwoQuadsPatchConstructor(PatchConstructor):
 
         commands = [4, 1, 4, 1, 4, 1, 4, 3, 1, 1, 4, 4, 3, 1, 4, 1, 4, 3, 1, 1, 4]
         get_vert_order = [4, 5, 2, 1, 0, 3, 6, 7, 8]
-        nb_verts = Halfedge.get_verts_repeat_n_times(halfedge, commands, 4, get_vert_order, 9)
+        nb_verts = Halfedge.get_verts_repeat_n_times(halfedge, commands, 1, get_vert_order, 9)
 
         return nb_verts
 
