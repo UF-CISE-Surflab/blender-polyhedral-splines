@@ -51,7 +51,7 @@ class PatchHelper:
 
         return patchWrappers
 
-    @staticmethod 
+    @staticmethod
     def getVertPatches(bMesh, isBSpline = True) -> list[PatchWrapper]:
         bsplinePatches = []
         # Iterate through each vert of the mesh

@@ -10,11 +10,13 @@ class PatchInfo:
 
 
 class PatchTracker:
+    patch_names: set = set() # keeps all the spline object name
     vpatch_LUT: dict = {}  # vert to vert-based patch look up table
     fpatch_LUT: dict = {}  # vert to face-based patch look up table
 
     @classmethod
     def register_patch(cls, central_obj, neighbor_vert, patch_name):
+        cls.patch_names.add(patch_name)
         if type(central_obj).__name__ == 'BMVert':
             for nbv in neighbor_vert:
                 if nbv.index not in cls.vpatch_LUT:  # if index is not a key in dict
