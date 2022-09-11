@@ -2,16 +2,10 @@ import numpy
 import bpy
 import bmesh
 from bpy.app.handlers import persistent
+from .algorithms import Algorithms
 from .patch_helper import PatchHelper
 from .helper import Helper
-from .reg_patch_constructor import RegPatchConstructor
-from .extraordinary_patch_constructor import ExtraordinaryPatchConstructor
-from .t0_patch_constructor import T0PatchConstructor
-from .t1_patch_constructor import T1PatchConstructor
-from .t2_patch_constructor import T2PatchConstructor
-from .n_gon_patch_constructor import NGonPatchConstructor
-from .polar_patch_constructor import PolarPatchConstructor
-from .two_triangles_two_quads_patch_constructor import TwoTrianglesTwoQuadsPatchConstructor
+from .highlighter import Highlighter
 from .patch_tracker import PatchTracker
 from .patch import PatchOperator
 from .bivariateBBFunctions import bbFunctions
@@ -27,21 +21,6 @@ class PolyhedralSplines(bpy.types.Operator):
     bl_label = "Interactive Modeling"
     bl_idname = "object.polyhedral_splines"
     bl_description = "Generates polyhedral spline mesh. Some mesh configurations are not supported, subdivide the mesh beforehand if this is the case"
-
-    # The algorithm using face as center
-    face_based_patch_constructors: list = [
-        T0PatchConstructor,
-        T1PatchConstructor,
-        T2PatchConstructor,
-        NGonPatchConstructor
-    ]
-    # The algorithm using vert as center
-    vert_based_patch_constructors: list = [
-        RegPatchConstructor,
-        ExtraordinaryPatchConstructor,
-        PolarPatchConstructor,
-        TwoTrianglesTwoQuadsPatchConstructor
-    ]
 
     def __init__(self):
         print("Start")
@@ -59,6 +38,11 @@ class PolyhedralSplines(bpy.types.Operator):
         return False
 
     def execute(self, context):
+        # Check if all submeshes are supported by algorithms.
+        # Subdivide the mesh if not.
+        if Highlighter.is_subdivision_required(context):
+            bpy.ops.object.subdivide_mesh()
+
         self.__init_patch_obj__(context)
         bpy.ops.ui.reloadtranslation()
         return {'FINISHED'}
@@ -126,7 +110,7 @@ def update_surface(context, obj):
     bm = bmesh.from_edit_mesh(obj.data)
     selected_verts = [v for v in bm.verts if v.select]
 
-    
+
 
     for sv in selected_verts:
         bmesh.update_edit_mesh(obj.data)
@@ -143,7 +127,7 @@ def update_surface(context, obj):
         if central_face_IDs is not False and fpatch_names is not False:
             i = 0
             while i < len(central_face_IDs):
-                for pc in PolyhedralSplines.face_based_patch_constructors:
+                for pc in Algorithms.face_patch_constructors:
                     if i >= len(central_face_IDs):
                         break
                     if not pc.is_same_type(bm.faces[central_face_IDs[i]]):
@@ -156,7 +140,7 @@ def update_surface(context, obj):
         if central_vert_IDs is not False and vpatch_names is not False:
             i = 0
             while i < len(central_vert_IDs):
-                for pc in PolyhedralSplines.vert_based_patch_constructors:
+                for pc in Algorithms.vert_patch_constructors:
                     if i >= len(central_vert_IDs):
                         break
                     if not pc.is_same_type(bm.verts[central_vert_IDs[i]]):
@@ -169,5 +153,5 @@ def update_surface(context, obj):
     facePatchList = list(PatchTracker.fpatch_LUT)
     vertexPatchList = list(PatchTracker.vpatch_LUT)
 
-    
+
 bpy.app.handlers.depsgraph_update_post.append(edit_object_change_handler)

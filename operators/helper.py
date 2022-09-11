@@ -132,3 +132,11 @@ class Helper:
             if not Helper.is_quad(f):
                 return False
         return True
+
+    @staticmethod
+    def get_num_of_boundary_verts(bmesh) -> int:
+        k = 0
+        for v in bmesh.verts:
+            if v.is_boundary:
+                k += 1
+        return k
