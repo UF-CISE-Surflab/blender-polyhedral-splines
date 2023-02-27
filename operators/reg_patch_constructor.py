@@ -29,6 +29,10 @@ class RegPatchConstructor(PatchConstructor):
         if len(vert.link_edges) != 4:
             return False
 
+        # The point should not be on the boundary
+        if vert.is_boundary:
+            return False
+
         # All four neighbor faces should be quad (with four verts)
         for f in vert.link_faces:
             if not Helper.is_quad(f):
@@ -71,7 +75,7 @@ class RegPatchConstructor(PatchConstructor):
         else:
             return BezierPatch(
                 order_u=cls.deg_u + 1,
-                order_v=cls.deg_v + 1, 
+                order_v=cls.deg_v + 1,
                 struct_name=cls.name,
                 bezier_coefs=Helper.split_list(bezier_coefs, int(num_of_patches))
             )

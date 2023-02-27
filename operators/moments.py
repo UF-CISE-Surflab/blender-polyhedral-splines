@@ -18,7 +18,7 @@ class Moments(bpy.types.Operator):
     bl_label = "Calculate Moments"
     bl_idname = "object.moments"
     bl_description = "Calculates moment inertia values for the active object. Values are displayed on the bottom of the panel"
-    
+
     Volume = 0                       # display volume in UI
     CoM = [[], [], []]                        # put point at center of mass
     InertiaTens = [[[],[],[]],[[],[],[]],[[],[],[]]]        # and arrows at each direction of inertia tensor
@@ -43,7 +43,7 @@ class Moments(bpy.types.Operator):
             return True
         return False
 
-    # TODO: variable size based on madnitude of vector                                                                                                
+    # TODO: variable size based on madnitude of vector
     # calculate rotation from vector
     def execute(self, context):
         Moments.CurrentSelection = context.view_layer.objects.active
@@ -112,23 +112,23 @@ class Moments(bpy.types.Operator):
                 pieceMOI = bbFunctions.secondMoment(xCoefs, yCoefs, zCoefs, offset=centerOfMass)
                 momentOfInertia = momentOfInertia + pieceMOI
 
-        #To display the moment of inertia, the eigen values and eigenvectors of the matrix needs to be calculated                
+        #To display the moment of inertia, the eigen values and eigenvectors of the matrix needs to be calculated
         eigenVectors = np.linalg.eig(momentOfInertia)
         eigenScalers = np.abs(eigenVectors[0])
-        eigenScalers = eigenScalers / np.amax(eigenScalers) 
+        eigenScalers = eigenScalers / np.amax(eigenScalers)
         momentOfInertia = eigenVectors[1]
         for i in range(0,3):
             momentOfInertia[:,i] = momentOfInertia[:,i] * eigenScalers[i]
         print(f"TOTAL SUM = {runningSum}\nCENTER OF MASS = {centerOfMass}\nMOMENT OF INTERTIA = {momentOfInertia}\nEIGENVALUES = {eigenVectors}")
         momentOfInertia = eigenVectors[1]
-        
+
         Moments.Volume = runningSum
         Moments.CoM = np.around(centerOfMass, decimals=3).tolist()
         momentOfInertia = np.around(momentOfInertia, decimals=3)
         for i in range(0, 3):
             for j in range(0,3):
                 Moments.InertiaTens[i][j] = momentOfInertia[j,i]
-        
+
     def createCenterOfMass(context, CoM):
         mesh = bpy.data.meshes.new("Point")
         obj = bpy.data.objects.new("CenterOfMass", mesh)
@@ -245,7 +245,7 @@ class Moments(bpy.types.Operator):
         tempRot[1] = rotation[1]/np.linalg.norm(rotation)
         tempRot[2] = rotation[2]/np.linalg.norm(rotation)
 
-        
+
         # rotation
         obj.rotation_euler.x = rotation[0]
         obj.rotation_euler.y = rotation[1]
@@ -266,7 +266,7 @@ class Moments(bpy.types.Operator):
         mesh.update()
 
         Moments.ArrowObjs.append(obj)
-        
+
 
 #Remove arrows when deselecting object
 @persistent

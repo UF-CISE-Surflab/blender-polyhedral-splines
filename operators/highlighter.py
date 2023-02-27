@@ -124,10 +124,13 @@ class Highlighter(bpy.types.Operator):
 
         num_supported_verts = cls.inspect_verts(bm) + cls.inspect_faces(bm)
 
+        if n_verts>0 and num_supported_verts==0:
+            return True
+
         if n_verts == n_bdy_verts + num_supported_verts:
             return False
-        else:
-            return True
+
+        return True
 
 
 def show_message_box(message="", title="Message Box", icon="INFO"):
