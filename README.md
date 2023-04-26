@@ -14,7 +14,7 @@ Please find detailed introduction [here](https://uf-cise-surflab.github.io/blend
 </p>
 
 # Installation
-1. Download [Polyhedral splines repo](https://bitbucket.org/surflab/blender-polyhedral-splines/src/cleanup/) as add-on .zip file
+1. Download [Polyhedral splines repo](https://github.com/UF-CISE-Surflab/blender-polyhedral-splines/) as add-on .zip file
 2. Follow [official add-on installation guide](https://docs.blender.org/manual/en/latest/editors/preferences/addons.html).
 
 # How to find the installed add-on in Blender?
