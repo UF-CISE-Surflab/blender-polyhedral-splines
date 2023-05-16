@@ -42,7 +42,9 @@ Select the mesh object and click "Inspect mesh" to highlight the connectivity no
   <img src="img_readme/unsupport-highlight-1.png" width="325" />
 </p>
 
-> If fixing connectivity is tricky: one  step of Catmull-Clark subdivision always yields a supported configuration
+> If fixing connectivity is tricky: one step of Catmull-Clark subdivision always yields a supported configuration
+
+> The single subdivision step will be applied automatically if any unsupported configuration is detected.
 
 &nbsp;
 
