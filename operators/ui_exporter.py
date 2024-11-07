@@ -71,6 +71,10 @@ class IGSExporter(Operator, ExportHelper):
 
         f = open(filepath, 'w', encoding='utf-8')
 
+        # S and G
+        f.write("copyright(c)Jorg Peters [jorg.peters@gmail.com]                         S      1\n")
+        f.write(",,;                                                                     G      1\n")
+
         flen = [0 for _ in range(4)]
         t_Bbctr, t_Ffctr = 1, 1
 
@@ -78,9 +82,9 @@ class IGSExporter(Operator, ExportHelper):
             t_DegU = patch["deg_u"]
             t_DegV = patch["deg_v"]
             k = (t_DegU + 1) + (t_DegV + 1)
-            k1 = (k%8)==0 + math.trunc((k/8))# knots
+            k1 = math.ceil(k / 8) # knots; changed
             w = (t_DegU + 1) * (t_DegV + 1)
-            w1 = (w%8)==0 + math.trunc((w/8))# weights
+            w1 = math.ceil(w / 8) # weights; changed
 
             # deg-line, knots, weights, xyz location, param
             rows = (1 + 2 * k1 + w1 + w + 1) # size of one block
